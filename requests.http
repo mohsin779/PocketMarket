@@ -1,0 +1,31 @@
+@domain=http://localhost:8080
+
+###
+GET {{domain}}/admin/employees
+
+###
+POST {{domain}}/admin/employees
+Content-Type: application/json
+
+{
+    "name":"ali",
+    "email":"ali.ali123@gmail.com",
+    "password":"ali11",
+    "role":"employee"
+}
+
+###
+GET {{domain}}/admin/employee/6298ba8ba7ed9978809fa20f
+
+###
+PUT {{domain}}/admin/employee/6298b51c51da9d7c52b331aa
+Content-Type: application/json
+
+{
+    "name":"Mohsin Ali",
+    "email":"mohsin.ali123@gmail.com",
+    "password":"",
+    "role":"employee"
+}
+
+$2a$12$9zg6/RlzdcyQR6mSWs3l5.44BfLTHmixqDIyLC9NFwgt.cNTwAqa.
