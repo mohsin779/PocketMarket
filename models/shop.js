@@ -1,5 +1,6 @@
 const { Schema, model, Types } = require("mongoose");
 const Joi = require("joi");
+const jwt = require("jsonwebtoken");
 
 const shopSchema = new Schema({
   name: String,
@@ -10,6 +11,20 @@ const shopSchema = new Schema({
     ref: "Role",
   },
 });
+
+shopSchema.methods.genAuthToken = function () {
+  const token = jwt.sign(
+    {
+      email: this.email,
+      _id: this._id.toString(),
+      role: this.role,
+    },
+    process.env.SUPER_KEY,
+    { expiresIn: "1h" }
+  );
+
+  return token;
+};
 
 const validation = Joi.object({
   name: Joi.string().min(3).max(25).trim(true).required(),

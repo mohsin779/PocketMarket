@@ -1,7 +1,6 @@
-const mongoose = require("mongoose");
+const { Schema, model, Types } = require("mongoose");
 const Joi = require("joi");
-
-const Schema = mongoose.Schema;
+const jwt = require("jsonwebtoken");
 
 const superAdminSchema = new Schema({
   name: String,
@@ -13,12 +12,27 @@ const superAdminSchema = new Schema({
   },
 });
 
+superAdminSchema.methods.genAuthToken = function () {
+  const token = jwt.sign(
+    {
+      email: this.email,
+      _id: this._id.toString(),
+      role: this.role,
+    },
+    process.env.SUPER_KEY,
+    { expiresIn: "1h" }
+  );
+
+  return token;
+};
+
 const validation = Joi.object({
   name: Joi.string().min(3).max(25).trim(true).required(),
   email: Joi.string().email().trim(true).required(),
   password: Joi.string().min(8).trim(true).required(),
   role: Joi.string().required(),
 });
-const SuperAdmin = mongoose.model("SuperAdmin", superAdminSchema);
+
+const SuperAdmin = model("SuperAdmin", superAdminSchema);
 exports.SuperAdmin = SuperAdmin;
 exports.SuperAdminValidations = validation;
