@@ -1,17 +1,17 @@
-const express = require("express");
+// const express = require("express");
 
-const adminController = require("../controller/superAdmin");
+// const adminController = require("../controller/superAdmin");
 
-// const {AdminValidations}=require('../models/admin')
+// // const {AdminValidations}=require('../models/admin')
 
-const router = express.Router();
+// const router = express.Router();
 
-router.post("/", adminController.createEmployee);
+// router.post("/", adminController.createEmployee);
 
-router.get("/employees", adminController.getEmployees);
+// router.get("/employees", adminController.getEmployees);
 
-router.get("/employee/:employeeId", adminController.getEmloyee);
+// router.get("/employee/:employeeId", adminController.getEmloyee);
 
-router.put("/employee/:employeeId", adminController.updateEmployee);
+// router.put("/employee/:employeeId", adminController.updateEmployee);
 
-module.exports = router;
+// module.exports = router;

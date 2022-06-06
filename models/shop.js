@@ -18,6 +18,6 @@ const validation = Joi.object({
   role: Joi.string().required(),
 });
 
-const Shop = model("Admin", shopSchema);
+const Shop = model("Shop", shopSchema);
 exports.Shop = Shop;
 exports.ShopValidation = validation;

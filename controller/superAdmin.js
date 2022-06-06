@@ -10,7 +10,7 @@ exports.getRoles = async (req, res, next) => {
     res.status(500).send({ error: err });
   }
 };
-exports.getEmployees = async (req, res, next) => {
+exports.getShops = async (req, res, next) => {
   try {
     const shops = await Shop.find().select("-password").populate("role");
     res.status(200).send({ shops: shops });
@@ -19,7 +19,7 @@ exports.getEmployees = async (req, res, next) => {
   }
 };
 
-exports.createEmployee = async (req, res, next) => {
+exports.createShop = async (req, res, next) => {
   try {
     const { email, name, password, role } = req.body;
 
@@ -44,7 +44,7 @@ exports.createEmployee = async (req, res, next) => {
       .populate("role");
 
     res.status(201).json({
-      message: "Admin created!",
+      message: "Shop created!",
       shop: createdShop,
     });
   } catch (err) {
@@ -52,16 +52,16 @@ exports.createEmployee = async (req, res, next) => {
   }
 };
 
-exports.getEmloyee = async (req, res, next) => {
-  const employeeId = req.params.employeeId;
-  const employee = await Admin.findById(employeeId);
+exports.getShop = async (req, res, next) => {
+  const shopId = req.params.shopId;
+  const shop = await Shop.findById(shopId);
   try {
-    if (!employee) {
-      const error = new Error("Could not find Employee.");
+    if (!shop) {
+      const error = new Error("Could not find Shop.");
       error.statusCode = 404;
       throw error;
     }
-    res.status(200).json({ message: "Employee fetched.", employee: employee });
+    res.status(200).json({ message: "Shop fetched.", shop: shop });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -70,34 +70,27 @@ exports.getEmloyee = async (req, res, next) => {
   }
 };
 
-exports.updateEmployee = async (req, res, next) => {
-  const employeeId = req.params.employeeId;
+exports.updateShop = async (req, res, next) => {
+  const shopId = req.params.shopId;
 
-  const name = req.body.name;
-  const email = req.body.email;
-  const password = req.body.password;
-  const role = req.body.role;
+  const { name, email, password, role } = req.body;
 
   try {
-    const employee = await Admin.findById(employeeId);
-    if (!employee) {
-      const error = new Error("Could not find Employee.");
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      const error = new Error("Could not find Shop.");
       error.statusCode = 404;
       throw error;
     }
-    // if (employee._id !== req.userId) {
-    //   const error = new Error('Not authorized!');
-    //   error.statusCode = 403;
-    //   throw error;
-    // }
-    employee.name = name;
-    employee.email = email;
+    shop.name = name;
+    shop.email = email;
     if (password) {
-      employee.password = password;
+      const hashedPw = await bcrypt.hash(password, 12);
+      shop.password = hashedPw;
     }
-    employee.role = role;
-    const result = await employee.save();
-    res.status(200).json({ message: "Employee updated!", employee: result });
+    shop.role = role;
+    const result = await shop.save();
+    res.status(200).json({ message: "Shop updated!", shop: result });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

@@ -17,7 +17,7 @@ exports.login = async (req, res, next) => {
       throw error;
     }
     loadedShop = shop;
-    const isEqual = await bcrypt.compare(password, user.password);
+    const isEqual = await bcrypt.compare(password, shop.password);
     if (!isEqual) {
       const error = new Error("Wrong password!");
       error.statusCode = 401;
@@ -25,13 +25,13 @@ exports.login = async (req, res, next) => {
     }
     const token = jwt.sign(
       {
-        email: loadedUser.email,
-        userId: loadedUser._id.toString(),
+        email: loadedShop.email,
+        shopId: loadedShop._id.toString(),
       },
       process.env.SUPER_KEY,
       { expiresIn: "1h" }
     );
-    res.status(200).json({ token: token, userId: loadedUser._id.toString() });
+    res.status(200).json({ token: token, shopId: loadedShop._id.toString() });
   } catch (err) {
     res.status(500).send({ error: err });
   }
