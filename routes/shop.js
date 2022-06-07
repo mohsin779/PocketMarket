@@ -1,17 +1,14 @@
-// const express = require("express");
+const express = require("express");
 
-// const adminController = require("../controller/superAdmin");
+const shopController = require("../controller/shop");
+const isAuth = require("../middleware/is-auth");
+const uploadImage = require("../middleware/uploadImage");
+const router = express.Router();
 
-// // const {AdminValidations}=require('../models/admin')
+router.post("/add-product", isAuth, uploadImage, shopController.addProduct);
 
-// const router = express.Router();
+router.get("/get-product/:productId", isAuth, shopController.getProduct);
 
-// router.post("/", adminController.createEmployee);
+// router.put("/", );
 
-// router.get("/employees", adminController.getEmployees);
-
-// router.get("/employee/:employeeId", adminController.getEmloyee);
-
-// router.put("/employee/:employeeId", adminController.updateEmployee);
-
-// module.exports = router;
+module.exports = router;

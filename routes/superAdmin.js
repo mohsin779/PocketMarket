@@ -34,4 +34,11 @@ router.put(
   superAdminController.updateShop
 );
 
+router.post(
+  "/add-category",
+  isAuth,
+  isSuperAdmin,
+  superAdminController.addCategory
+);
+
 module.exports = router;

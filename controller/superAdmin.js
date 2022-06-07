@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const { Role } = require("../models/roles");
 const { Shop } = require("../models/shop");
+const { Category } = require("../models/category");
 
 exports.getRoles = async (req, res, next) => {
   try {
@@ -29,13 +30,14 @@ exports.createShop = async (req, res, next) => {
         .status(401)
         .send({ error: "A shop with this email already exists" });
     }
+    const roleId = await Role.findOne({ name: role });
 
     const hashedPw = await bcrypt.hash(password, 12);
     const shop = new Shop({
       name: name,
       email: email,
       password: hashedPw,
-      role: role,
+      role: roleId,
     });
     await shop.save();
 
@@ -96,5 +98,30 @@ exports.updateShop = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+  }
+};
+
+exports.addCategory = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+
+    const existingCategory = await Category.findOne({ name: name });
+    if (existingCategory) {
+      return res
+        .status(401)
+        .send({ error: "A Category with this name already exists" });
+    }
+
+    const category = new Category({
+      name: name,
+    });
+    const result = await category.save();
+
+    res.status(201).json({
+      message: "Category created!",
+      category: result,
+    });
+  } catch (err) {
+    res.status(500).send({ error: err });
   }
 };
