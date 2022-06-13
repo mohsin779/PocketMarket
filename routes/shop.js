@@ -23,6 +23,4 @@ router.put(
   shopController.updateProduct
 );
 
-// router.put("/", );
-
 module.exports = router;

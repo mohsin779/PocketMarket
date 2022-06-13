@@ -7,8 +7,10 @@ const Schema = mongoose.Schema;
 const productSchema = new Schema({
   name: String,
   quantity: Number,
-  price: Number,
   imageUrl: String,
+  sellingPrice: Number,
+  retailPrice: Number,
+  description: String,
   creator: {
     type: Schema.Types.ObjectId,
     ref: "Shop",
@@ -24,7 +26,9 @@ const productSchema = new Schema({
 const validation = Joi.object({
   name: Joi.string().min(3).max(25).trim(true).required(),
   quantity: Joi.number().required(),
-  price: Joi.number().positive().greater(1).precision(2).required(),
+  sellingPrice: Joi.number().positive().greater(1).precision(2).required(),
+  retailPrice: Joi.number().positive().greater(1).precision(2).required(),
+  description: Joi.string().min(3).max(25).trim(true).required(),
   imageUrl: Joi.string().trim(true).required(),
 });
 

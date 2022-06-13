@@ -18,7 +18,6 @@ module.exports = function () {
       fileSize: 10000000, // 10000000 Bytes = 10 MB
     },
     fileFilter(req, file, cb) {
-      // upload only mp4 and mkv format
       if (!file.originalname.match(/\.(jpeg|png|svg|jpg|gif)$/)) {
         console.log("mohsin");
         return cb(new Error("Please upload Image"));

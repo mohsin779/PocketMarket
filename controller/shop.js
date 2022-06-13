@@ -13,7 +13,8 @@ exports.addProduct = async (req, res) => {
     console.log("after");
     // console.log("file===>", file);
     // const { name, quantity, price, category } = JSON.parse(req.body.data);
-    const { name, quantity, price, category } = req.body;
+    const { name, quantity, sellingPrice, category, retailPrice, description } =
+      req.body;
 
     const categoryId = await Category.findOne({ name: category });
     if (!req.file) {
@@ -25,7 +26,9 @@ exports.addProduct = async (req, res) => {
     const product = new Product({
       name: name,
       quantity: quantity,
-      price: price,
+      sellingPrice: sellingPrice,
+      retailPrice: retailPrice,
+      description: description,
       imageUrl: file.path,
       creator: req.user._id,
       category: categoryId,
@@ -64,7 +67,8 @@ exports.getProduct = async (req, res, next) => {
 exports.updateProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
-    const { name, quantity, price, category } = req.body;
+    const { name, quantity, sellingPrice, category, retailPrice, description } =
+      req.body;
 
     const categoryId = await Category.findOne({ name: category });
 
@@ -85,7 +89,9 @@ exports.updateProduct = async (req, res) => {
     }
     product.name = name;
     product.quantity = quantity;
-    product.price = price;
+    product.sellingPrice = sellingPrice;
+    product.retailPrice = retailPrice;
+    product.description = description;
     if (imageUrl) {
       product.imageUrl = imageUrl;
     }
@@ -125,15 +131,3 @@ const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));
 };
-
-// exports.getMyProducts = async (req, res, next) => {
-//   //   console.log(req.user._id);
-//   try {
-//     const products = await Product.find(creator._id: req.user._id).populate(
-//       "category"
-//     );
-//     res.status(200).send({ products: products });
-//   } catch (err) {
-//     res.status(500).send({ error: err });
-//   }
-// };
