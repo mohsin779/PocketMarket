@@ -16,7 +16,5 @@ app.get("/", (req, res) => {
 });
 
 const port = parseInt(process.env.PORT) || 5006;
-console.log(typeof process.env.MONGO_URL, process.env.MONGO_URL);
-console.log(typeof process.env.SUPER_KEY, process.env.SUPER_KEY);
 
 app.listen(port, () => console.log(`server started at ${port}`));
