@@ -1,10 +1,56 @@
 const path = require("path");
+const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const { StatusCodes } = require("http-status-codes");
 const { Product } = require("../models/product");
 const { Category } = require("../models/category");
+const { Shop } = require("../models/shop");
+const { UpdateRequest } = require("../models/updateRequests");
 
-const { resolveSoa } = require("dns");
+exports.myShop = async (req, res, next) => {
+  const shopId = req.user._id;
+  const shop = await Shop.findById(shopId);
+  try {
+    if (!shop) {
+      return res.status(404).send("Could not find Shop");
+    }
+    res.status(200).json({ shop: shop });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.updateShop = async (req, res, next) => {
+  try {
+    const shopId = req.user._id;
+    const { name, email, password } = req.body;
+    let pass = password;
+    if (password) {
+      const hashedPw = await bcrypt.hash(password, 12);
+      pass = hashedPw;
+    }
+
+    const updateRequest = new UpdateRequest({
+      shopId: shopId,
+      name: name,
+      email: email,
+      password: pass,
+    });
+
+    await updateRequest.save();
+    res
+      .status(200)
+      .json({ message: "Request sent Successfully to SuperAdmin" });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
 
 exports.addProduct = async (req, res) => {
   try {
@@ -45,22 +91,6 @@ exports.addProduct = async (req, res) => {
     });
   } catch (err) {
     res.status(500).send({ error: err });
-  }
-};
-
-exports.getProduct = async (req, res, next) => {
-  const productId = req.params.productId;
-  const product = await Product.findById(productId);
-  try {
-    if (!product) {
-      return res.status(404).send({ error: "Could not find Product." });
-    }
-    res.status(200).json({ message: "Product fetched.", product: product });
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
   }
 };
 

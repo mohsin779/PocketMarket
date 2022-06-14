@@ -17,7 +17,7 @@ exports.updateCustomer = async (req, res, next) => {
     if (!customer) {
       return res.status(404).send("Could not find Customer");
     }
-    console.log(customerId, " && ", req.user._id);
+    // console.log(customerId, " && ", req.user._id);
 
     if (customer._id.toString() !== req.user._id.toString()) {
       return res.status(403).send({ error: "Not authorized!" });
@@ -106,5 +106,15 @@ const saveOrder = async (req, products, totalPrice) => {
       name: product.name,
     });
     await orderedProduct.save();
+  });
+  updateProductsQuantity(products);
+};
+
+const updateProductsQuantity = async (products) => {
+  products.forEach(async (prod) => {
+    const product = await Product.findById({ _id: prod._id });
+    const updatedQuantity = product.quantity - prod.quantity;
+    product.quantity = updatedQuantity;
+    await product.save();
   });
 };

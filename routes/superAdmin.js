@@ -20,13 +20,6 @@ router.post(
 
 router.get("/get-shops", isAuth, isSuperAdmin, superAdminController.getShops);
 
-router.get(
-  "/get-single-shop/:shopId",
-  isAuth,
-  isSuperAdmin,
-  superAdminController.getShop
-);
-
 router.put(
   "/update-shop/:shopId",
   isAuth,
@@ -39,6 +32,13 @@ router.post(
   isAuth,
   isSuperAdmin,
   superAdminController.addCategory
+);
+
+router.get(
+  "/get-update-requests",
+  isAuth,
+  isSuperAdmin,
+  superAdminController.getUpdateRequests
 );
 
 module.exports = router;

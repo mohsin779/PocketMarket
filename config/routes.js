@@ -5,7 +5,7 @@ const helmet = require("helmet");
 const superAdminRoutes = require("../routes/superAdmin");
 const authRoutes = require("../routes/auth");
 const shopRoutes = require("../routes/shop");
-const commonRoutes = require("../routes/commonRoutes");
+const commonRoutes = require("../routes/publicRoutes");
 const customerRoutes = require("../routes/customer");
 
 module.exports = function (app) {

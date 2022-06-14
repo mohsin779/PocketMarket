@@ -12,8 +12,6 @@ router.post(
   shopController.addProduct
 );
 
-router.get("/get-product/:productId", isAuth, shopController.getProduct);
-
 router.post("/delete-product/:productId", isAuth, shopController.deleteProduct);
 
 router.put(
@@ -22,5 +20,8 @@ router.put(
   imageUpload.single("image"),
   shopController.updateProduct
 );
+
+router.post("/update-shop", isAuth, shopController.updateShop);
+router.get("/myShop", isAuth, shopController.myShop);
 
 module.exports = router;

@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const { Role } = require("../models/roles");
 const { Shop } = require("../models/shop");
 const { Category } = require("../models/category");
+const { UpdateRequest } = require("../models/updateRequests");
 
 exports.getRoles = async (req, res, next) => {
   try {
@@ -54,16 +55,31 @@ exports.createShop = async (req, res, next) => {
   }
 };
 
-exports.getShop = async (req, res, next) => {
-  const shopId = req.params.shopId;
-  const shop = await Shop.findById(shopId);
+exports.updateShop = async (req, res, next) => {
   try {
+    const shopId = req.params.shopId;
+
+    const shop = await Shop.findById(shopId);
+    const update = await UpdateRequest.findOne({ shopId: shopId });
     if (!shop) {
-      const error = new Error("Could not find Shop.");
-      error.statusCode = 404;
-      throw error;
+      return res.status(404).send("Could not find Shop");
     }
-    res.status(200).json({ message: "Shop fetched.", shop: shop });
+    if (!update) {
+      return res
+        .status(404)
+        .send("There is no update found regarding this Shop ID!");
+    }
+    shop.name = update.name;
+    shop.email = update.email;
+    if (update.password) {
+      shop.password = update.password;
+    }
+    const result = await shop.save();
+    if (result) {
+      const deleteId = await UpdateRequest.findOne({ shopId: shopId });
+      await UpdateRequest.findByIdAndRemove({ _id: deleteId._id });
+    }
+    res.status(200).json({ message: "Shop updated!", shop: result });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -72,32 +88,13 @@ exports.getShop = async (req, res, next) => {
   }
 };
 
-exports.updateShop = async (req, res, next) => {
-  const shopId = req.params.shopId;
-
-  const { name, email, password, role } = req.body;
-
+exports.getUpdateRequests = async (req, res, next) => {
+  console.log("hello");
   try {
-    const shop = await Shop.findById(shopId);
-    if (!shop) {
-      const error = new Error("Could not find Shop.");
-      error.statusCode = 404;
-      throw error;
-    }
-    shop.name = name;
-    shop.email = email;
-    if (password) {
-      const hashedPw = await bcrypt.hash(password, 12);
-      shop.password = hashedPw;
-    }
-    shop.role = role;
-    const result = await shop.save();
-    res.status(200).json({ message: "Shop updated!", shop: result });
+    const updateRequests = await UpdateRequest.find();
+    res.status(200).send({ updateRequests: updateRequests });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
+    res.status(500).send({ error: err });
   }
 };
 
