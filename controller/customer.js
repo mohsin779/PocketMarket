@@ -45,23 +45,7 @@ exports.updateCustomer = async (req, res, next) => {
 exports.addToOrder = async (req, res, next) => {
   try {
     const { paymentMethod, products } = req.body;
-    /////////////////////////////////////////////////////////////////
-    if (paymentMethod === "card") {
-      const session = stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: products.forEach(async (prod) => {
-          const product = await Product.findById({ _id: prod._id });
-          return {
-            orderId: order._id,
-            productId: product._id,
-            quantity: prod.quantity,
-            unitPrice: product.unitPrice,
-            name: product.name,
-          };
-        }),
-      });
-    }
-    //////////////////////////////////////////////////////////////////
+
     const productData = await Promise.all(
       products.map(async (prod) => {
         return await Product.findById({ _id: prod._id });
@@ -72,30 +56,55 @@ exports.addToOrder = async (req, res, next) => {
       return acc + products[i].quantity * product.sellingPrice;
     }, 0);
 
-    const order = new Order({
-      customerId: req.user._id,
-      status: "Pending",
-      totalPrice: totalPrice,
-    });
-    await order.save();
-
-    products.forEach(async (prod) => {
-      const product = await Product.findById({ _id: prod._id });
-      const orderedProduct = new OrderedProduct({
-        orderId: order._id,
-        productId: product._id,
-        quantity: prod.quantity,
-        unitPrice: product.unitPrice,
-        name: product.name,
+    if (paymentMethod === "card") {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: productData.map((product, i) => {
+          return {
+            currency: "pkr",
+            quantity: products[i].quantity,
+            amount: product.sellingPrice * products[i].quantity * 100,
+            name: product.name,
+          };
+        }),
+        success_url: req.protocol + "://" + req.get("host"), //http://localhost:8080
+        cancel_url: req.protocol + "://" + req.get("host"), //http://localhost:8080
       });
-      await orderedProduct.save();
-    });
-
-    res.send("Hello");
+      if (session) {
+        saveOrder(req, products, totalPrice);
+        return res.json({ id: session.id, total: totalPrice });
+      } else {
+        return res.status(401).send({ error: "No valid API key provided." });
+      }
+    } else {
+      saveOrder(req, products, totalPrice);
+      return res.json({ message: "order added!" });
+    }
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
+};
+
+const saveOrder = async (req, products, totalPrice) => {
+  const order = new Order({
+    customerId: req.user._id,
+    status: "Pending",
+    totalPrice: totalPrice,
+  });
+  await order.save();
+
+  products.forEach(async (prod) => {
+    const product = await Product.findById({ _id: prod._id });
+    const orderedProduct = new OrderedProduct({
+      orderId: order._id,
+      productId: product._id,
+      quantity: prod.quantity,
+      unitPrice: product.retailPrice,
+      name: product.name,
+    });
+    await orderedProduct.save();
+  });
 };
