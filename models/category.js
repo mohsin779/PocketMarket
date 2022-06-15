@@ -5,10 +5,12 @@ const Schema = mongoose.Schema;
 
 const categorySchema = new Schema({
   name: String,
+  imageUrl: String,
 });
 
 const validation = Joi.object({
   name: Joi.string().min(3).max(25).trim(true).required(),
+  imageUrl: Joi.string().trim(true).required(),
 });
 
 const Category = mongoose.model("Category", categorySchema);

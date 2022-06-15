@@ -10,5 +10,7 @@ router.put(
   customerController.updateCustomer
 );
 router.post("/add-to-order", isAuth, customerController.addToOrder);
-
+router.get("/my-orders", isAuth, customerController.myOrders);
+router.get("/order-detail/:orderId", isAuth, customerController.orderDetails);
+router.get("/orders-history", isAuth, customerController.orderHistory);
 module.exports = router;

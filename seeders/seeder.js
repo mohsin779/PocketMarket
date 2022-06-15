@@ -17,16 +17,22 @@ const seeder = async () => {
     .catch((err) => console.error("Could not connect to MongoDb... ", err));
 
   const roles = ["Super admin", "Shop"];
-  const categories = ["Electronics", "Health", "Sports", "Kitchen"];
+  const categories = ["Electronics", "Kitchen"];
+  const category_images = [
+    "uploads/image_0000000000000.jpg",
+    "uploads/image_0000000000001.jpg",
+  ];
 
   roles.map(async (item, index) => {
     const role = new Role({ name: item });
-
     await role.save();
   });
 
   categories.map(async (name, index) => {
-    const category = new Category({ name: name });
+    const category = new Category({
+      name: name,
+      imageUrl: category_images[index],
+    });
 
     await category.save();
   });

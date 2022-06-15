@@ -13,6 +13,11 @@ const orderedProductSchema = new Schema({
     ref: "Product",
     require: true,
   },
+  shopId: {
+    type: Schema.Types.ObjectId,
+    ref: "Shop",
+    require: true,
+  },
   quantity: Number,
   unitPrice: Number,
   name: String,

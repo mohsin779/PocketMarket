@@ -89,7 +89,7 @@ exports.updateShop = async (req, res, next) => {
 };
 
 exports.getUpdateRequests = async (req, res, next) => {
-  console.log("hello");
+  // console.log("hello");
   try {
     const updateRequests = await UpdateRequest.find();
     res.status(200).send({ updateRequests: updateRequests });
@@ -108,9 +108,15 @@ exports.addCategory = async (req, res, next) => {
         .status(401)
         .send({ error: "A Category with this name already exists" });
     }
+    if (!req.file) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({ error: "please add an image for this category" });
+    }
 
     const category = new Category({
       name: name,
+      imageUrl: req.file.path,
     });
     const result = await category.save();
 

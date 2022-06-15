@@ -23,5 +23,12 @@ router.put(
 
 router.post("/update-shop", isAuth, shopController.updateShop);
 router.get("/myShop", isAuth, shopController.myShop);
+router.get("/myProducts", isAuth, shopController.myProducts);
+router.get("/orders", isAuth, shopController.orders);
+router.put(
+  "/update-order-status/:orderId",
+  isAuth,
+  shopController.updateOrderStatus
+);
 
 module.exports = router;
