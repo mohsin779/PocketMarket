@@ -6,6 +6,8 @@ const { Product } = require("../models/product");
 const { Category } = require("../models/category");
 const { Shop } = require("../models/shop");
 const { UpdateRequest } = require("../models/updateRequests");
+const { OrderedProduct } = require("../models/orderedProduct");
+const { Order } = require("../models/order");
 
 exports.myShop = async (req, res, next) => {
   const shopId = req.user._id;
@@ -15,6 +17,22 @@ exports.myShop = async (req, res, next) => {
       return res.status(404).send("Could not find Shop");
     }
     res.status(200).json({ shop: shop });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.myProducts = async (req, res, next) => {
+  try {
+    const shopId = req.user._id;
+    const products = await Product.find({ creator: shopId });
+    if (!products) {
+      return res.json({ error: "You dont have any product" });
+    }
+    return res.json({ products: products });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -54,9 +72,9 @@ exports.updateShop = async (req, res, next) => {
 
 exports.addProduct = async (req, res) => {
   try {
-    console.log("before");
+    // console.log("before");
     const file = req.file;
-    console.log("after");
+    // console.log("after");
     // console.log("file===>", file);
     // const { name, quantity, price, category } = JSON.parse(req.body.data);
     const { name, quantity, sellingPrice, category, retailPrice, description } =
@@ -154,6 +172,44 @@ exports.deleteProduct = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+  }
+};
+
+exports.orders = async (req, res, next) => {
+  try {
+    const shopId = req.user._id;
+    const order = await OrderedProduct.find({ shopId: shopId });
+    if (!order) {
+      return res.json({ error: "You dont have any order" });
+    }
+    return res.json({ order: order });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.updateOrderStatus = async (req, res, next) => {
+  try {
+    const orderId = req.params.orderId;
+    const shop = await OrderedProduct.findOne({ orderId: orderId });
+
+    if (shop.shopId.toString() !== req.user._id) {
+      return res.status(401).send({ error: "Not Authanticted" });
+    }
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).send({ error: "order not found" });
+    }
+    order.status = "delivered";
+    await order.save();
+    return res.json({ message: "Staus updated successfully!" });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
   }
 };
 

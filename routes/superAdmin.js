@@ -3,6 +3,7 @@ const express = require("express");
 const superAdminController = require("../controller/superAdmin");
 const isAuth = require("../middleware/is-auth");
 const isSuperAdmin = require("../middleware/isSuperAdmin");
+const imageUpload = require("../config/multerImage")();
 
 const router = express.Router();
 
@@ -31,6 +32,7 @@ router.post(
   "/add-category",
   isAuth,
   isSuperAdmin,
+  imageUpload.single("image"),
   superAdminController.addCategory
 );
 

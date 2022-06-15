@@ -41,7 +41,34 @@ exports.updateCustomer = async (req, res, next) => {
     next(err);
   }
 };
+exports.myOrders = async (req, res, next) => {
+  try {
+    const customerId = req.user._id;
+    const orders = await Order.find({ customerId: customerId });
+    if (!orders) {
+      return res.json({ error: "You did not placed any order" });
+    }
+    return res.json({ orders: orders });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+exports.orderDetails = async (req, res, next) => {
+  try {
+    const orderId = req.params.orderId;
+    const orderedProduct = await OrderedProduct.find({ orderId: orderId });
 
+    return res.json({ orderedProduct: orderedProduct });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
 exports.addToOrder = async (req, res, next) => {
   try {
     const { paymentMethod, products } = req.body;
@@ -88,10 +115,31 @@ exports.addToOrder = async (req, res, next) => {
   }
 };
 
+exports.orderHistory = async (req, res, next) => {
+  try {
+    const customerId = req.user._id;
+    const orders = await Order.find({
+      customerId: customerId,
+      status: "delivered",
+    });
+    if (!orders) {
+      return res
+        .status(404)
+        .send({ error: "you did not have any order history yet." });
+    }
+    return res.json({ orders: orders });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
 const saveOrder = async (req, products, totalPrice) => {
   const order = new Order({
     customerId: req.user._id,
-    status: "Pending",
+    status: "pending",
     totalPrice: totalPrice,
   });
   await order.save();
@@ -104,6 +152,7 @@ const saveOrder = async (req, products, totalPrice) => {
       quantity: prod.quantity,
       unitPrice: product.retailPrice,
       name: product.name,
+      shopId: product.creator,
     });
     await orderedProduct.save();
   });
