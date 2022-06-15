@@ -15,6 +15,6 @@ app.get("/", (req, res) => {
   res.send("Amazon Clone Working!");
 });
 
-const port = parseInt(process.env.PORT) || 5006;
+const port = process.env.PORT || 5006;
 
 app.listen(port, () => console.log(`server started at ${port}`));
