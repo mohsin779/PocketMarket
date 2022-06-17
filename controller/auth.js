@@ -7,6 +7,10 @@ const { SuperAdmin } = require("../models/superAdmin");
 const { Shop } = require("../models/shop");
 const { Customer } = require("../models/customer");
 
+// Google Auth
+// const { OAuth2Client } = require("google-auth-library");
+// const client = new OAuth2Client(process.env.CLIENT_ID);
+
 exports.shopLogin = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -127,3 +131,23 @@ exports.customerLogin = async (req, res, next) => {
     next(err);
   }
 };
+
+// exports.googleLogin = async (req, res, next) => {
+//   try {
+//     let token = req.body.token;
+//     const ticket = await client.verifyIdToken({
+//       idToken: token,
+//       audience: process.env.CLIENT_ID,
+//     });
+//     const payload = ticket.getPayload();
+//     const userid = payload["sub"];
+//     if (token) {
+//       res.status(200).json({ token: token, payload: payload });
+//     }
+//   } catch (err) {
+//     if (!err.statusCode) {
+//       err.statusCode = 500;
+//     }
+//     next(err);
+//   }
+// };
