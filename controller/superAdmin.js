@@ -1,8 +1,13 @@
+const path = require("path");
+const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const { Role } = require("../models/roles");
 const { Shop } = require("../models/shop");
 const { Category } = require("../models/category");
 const { UpdateRequest } = require("../models/updateRequests");
+const { OrderedProduct } = require("../models/orderedProduct");
+const { Product } = require("../models/product");
+const { Order } = require("../models/order");
 
 exports.getRoles = async (req, res, next) => {
   try {
@@ -127,3 +132,34 @@ exports.addCategory = async (req, res, next) => {
     res.status(500).send({ error: err });
   }
 };
+
+exports.deleteShop = async (req, res, next) => {
+  try {
+    const shopId = req.params.shopId;
+    // await OrderedProduct.deleteMany({ shopId: shopId });
+
+    // const orders = await Order.find();
+
+    // orders.forEach(async (order) => {
+    //   let count = OrderedProduct.countDocuments({ orderId: order._id });
+    //   if (count === 0) {
+    //     await Order.findByIdAndRemove({ _id: order._id });
+    //   }
+    // });
+    // const products = Product.find({ creator: shopId });
+    // products.forEach(async (product) => {
+    //   clearImage(product.imageUrl);
+    //   await Product.findByIdAndRemove({ _id: product._id });
+    // });
+    // await Shop.findByIdAndRemove({ _id: shopId });
+
+    return res.json({ message: "shop deleted" });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+// const clearImage = (filePath) => {
+//   filePath = path.join(__dirname, "..", filePath);
+//   fs.unlink(filePath, (err) => console.log(err));
+// };

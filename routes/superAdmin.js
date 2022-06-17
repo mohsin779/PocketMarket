@@ -43,4 +43,11 @@ router.get(
   superAdminController.getUpdateRequests
 );
 
+router.delete(
+  "/delete-shop/:shopId",
+  isAuth,
+  isSuperAdmin,
+  superAdminController.deleteShop
+);
+
 module.exports = router;

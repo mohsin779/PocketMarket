@@ -1,5 +1,7 @@
 const express = require("express");
 const multer = require("multer");
+const path = require("path");
+
 require("dotenv").config();
 require("./config/db")();
 const app = express();
@@ -9,7 +11,7 @@ const app = express();
 require("./config/morgan")(app);
 require("./config/routes")(app);
 
-// app.use("/images", express.static(path.join(__dirname, "images")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
   res.send("Amazon Clone Working!");
