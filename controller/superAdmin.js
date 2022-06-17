@@ -31,14 +31,13 @@ exports.createShop = async (req, res, next) => {
         .status(401)
         .send({ error: "A shop with this email already exists" });
     }
-    const roleId = await Role.findOne({ name: role });
 
     const hashedPw = await bcrypt.hash(password, 12);
     const shop = new Shop({
       name: name,
       email: email,
       password: hashedPw,
-      role: roleId,
+      role: role,
     });
     await shop.save();
 
