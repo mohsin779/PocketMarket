@@ -136,22 +136,24 @@ exports.addCategory = async (req, res, next) => {
 exports.deleteShop = async (req, res, next) => {
   try {
     const shopId = req.params.shopId;
-    // await OrderedProduct.deleteMany({ shopId: shopId });
+    await OrderedProduct.deleteMany({ shopId: shopId });
 
-    // const orders = await Order.find();
+    const orders = await Order.find();
 
-    // orders.forEach(async (order) => {
-    //   let count = OrderedProduct.countDocuments({ orderId: order._id });
-    //   if (count === 0) {
-    //     await Order.findByIdAndRemove({ _id: order._id });
-    //   }
-    // });
-    // const products = Product.find({ creator: shopId });
-    // products.forEach(async (product) => {
-    //   clearImage(product.imageUrl);
-    //   await Product.findByIdAndRemove({ _id: product._id });
-    // });
-    // await Shop.findByIdAndRemove({ _id: shopId });
+    orders.forEach(async (order) => {
+      let count = await OrderedProduct.countDocuments({ orderId: order._id });
+      if (count === 0) {
+        await Order.findByIdAndRemove({ _id: order._id });
+      }
+    });
+    const products = await Product.find({ creator: shopId });
+    if (products) {
+      products.forEach(async (product) => {
+        clearImage(product.imageUrl);
+        await Product.findByIdAndRemove({ _id: product._id });
+      });
+      await Shop.findByIdAndRemove({ _id: shopId });
+    }
 
     return res.json({ message: "shop deleted" });
   } catch (err) {
@@ -159,7 +161,7 @@ exports.deleteShop = async (req, res, next) => {
   }
 };
 
-// const clearImage = (filePath) => {
-//   filePath = path.join(__dirname, "..", filePath);
-//   fs.unlink(filePath, (err) => console.log(err));
-// };
+const clearImage = (filePath) => {
+  filePath = path.join(__dirname, "..", filePath);
+  fs.unlink(filePath, (err) => console.log(err));
+};
