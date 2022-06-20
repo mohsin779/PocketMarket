@@ -156,7 +156,9 @@ exports.deleteShop = async (req, res, next) => {
     const products = await Product.find({ creator: shopId });
     if (products) {
       products.forEach(async (product) => {
-        clearImage(product.imageUrl);
+        var filename = product.imageUrl.split("/").pop();
+        filename = filename.split(".")[0];
+        cloudinary.uploader.destroy(filename);
         await Product.findByIdAndRemove({ _id: product._id });
       });
       await Shop.findByIdAndRemove({ _id: shopId });
