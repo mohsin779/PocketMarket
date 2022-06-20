@@ -166,7 +166,6 @@ exports.deleteProduct = async (req, res, next) => {
     }
     var filename = product.imageUrl.split("/").pop();
     filename = filename.split(".")[0];
-    console.log(filename);
     cloudinary.uploader.destroy(filename);
     await Product.findByIdAndRemove(productId);
 

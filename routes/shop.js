@@ -12,7 +12,11 @@ router.post(
   shopController.addProduct
 );
 
-router.post("/delete-product/:productId", isAuth, shopController.deleteProduct);
+router.delete(
+  "/delete-product/:productId",
+  isAuth,
+  shopController.deleteProduct
+);
 
 router.put(
   "/update-product/:productId",
