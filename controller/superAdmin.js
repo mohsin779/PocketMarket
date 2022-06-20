@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
+const cloudinary = require("cloudinary").v2;
 const { Role } = require("../models/roles");
 const { Shop } = require("../models/shop");
 const { Category } = require("../models/category");
@@ -105,6 +106,8 @@ exports.getUpdateRequests = async (req, res, next) => {
 exports.addCategory = async (req, res, next) => {
   try {
     const { name } = req.body;
+    let imagePath = await cloudinary.uploader.upload(req.file.path);
+    clearImage(req.file.path);
 
     const existingCategory = await Category.findOne({ name: name });
     if (existingCategory) {
@@ -120,7 +123,7 @@ exports.addCategory = async (req, res, next) => {
 
     const category = new Category({
       name: name,
-      imageUrl: req.file.path,
+      imageUrl: imagePath.secure_url,
     });
     const result = await category.save();
 

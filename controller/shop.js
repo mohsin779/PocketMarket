@@ -76,19 +76,15 @@ exports.updateShop = async (req, res, next) => {
 exports.addProduct = async (req, res) => {
   try {
     const file = req.file;
+
     const { name, quantity, sellingPrice, category, retailPrice, description } =
       req.body;
-    const categoryId = await Category.findOne({ name: category });
     if (!req.file) {
       return res
         .status(StatusCodes.BAD_REQUEST)
         .send({ error: "please add an image for this product" });
     }
-
-    // cloudinary.uploader.upload(file.path, function (err, result) {
-    //   console.log(result.url);
-    //   res.send({ result });
-    // });
+    let imagePath = await cloudinary.uploader.upload(file.path);
 
     const product = new Product({
       name: name,
@@ -96,12 +92,12 @@ exports.addProduct = async (req, res) => {
       sellingPrice: sellingPrice,
       retailPrice: retailPrice,
       description: description,
-      imageUrl: file.path,
+      imageUrl: imagePath.secure_url,
       creator: req.user._id,
-      category: categoryId,
+      category: category,
     });
     await product.save();
-
+    clearImage(file.path);
     const createdProduct = await Product.findById({
       _id: product._id,
     }).populate("category");
@@ -121,11 +117,11 @@ exports.updateProduct = async (req, res) => {
     const { name, quantity, sellingPrice, category, retailPrice, description } =
       req.body;
 
-    const categoryId = await Category.findOne({ name: category });
-
     let imageUrl;
     if (req.file) {
-      imageUrl = req.file.path;
+      let imagePath = await cloudinary.uploader.upload(req.file.path);
+      imageUrl = imagePath.secure_url;
+      clearImage(req.file.path);
     }
 
     const product = await Product.findById(productId);
@@ -136,7 +132,9 @@ exports.updateProduct = async (req, res) => {
       return res.status(403).send({ error: "Not authorized!" });
     }
     if (imageUrl && imageUrl !== product.imageUrl) {
-      clearImage(product.imageUrl);
+      var filename = product.imageUrl.split("/").pop();
+      filename = filename.split(".")[0];
+      cloudinary.uploader.destroy(filename);
     }
     product.name = name;
     product.quantity = quantity;
@@ -146,7 +144,7 @@ exports.updateProduct = async (req, res) => {
     if (imageUrl) {
       product.imageUrl = imageUrl;
     }
-    product.category = categoryId;
+    product.category = category;
 
     const result = await product.save();
     res.status(200).json({ message: "Product updated!", product: result });
@@ -166,7 +164,10 @@ exports.deleteProduct = async (req, res, next) => {
     if (product.creator.toString() !== req.user._id) {
       return res.status(403).send("Not authorized!");
     }
-    clearImage(product.imageUrl);
+    var filename = product.imageUrl.split("/").pop();
+    filename = filename.split(".")[0];
+    console.log(filename);
+    cloudinary.uploader.destroy(filename);
     await Product.findByIdAndRemove(productId);
 
     res.status(200).json({ message: "Deleted product." });
@@ -220,29 +221,3 @@ const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));
 };
-
-// const uploadToCloudinary = (req) => {
-//   let streamUpload = (req) => {
-//     return new Promise((resolve, reject) => {
-//       let stream = cloudinary.uploader.upload_stream((error, result) => {
-//         if (result) {
-//           console.log("result");
-//           resolve(result);
-//         } else {
-//           console.log("error occured");
-
-//           reject(error);
-//         }
-//       });
-
-//       streamifier.createReadStream(req.file.buffer).pipe(stream);
-//     });
-//   };
-
-//   async function upload(req) {
-//     let result = await streamUpload(req);
-//     console.log(result);
-//   }
-
-//   upload(req);
-// };
