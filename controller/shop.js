@@ -1,6 +1,9 @@
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
+
 const { StatusCodes } = require("http-status-codes");
 const { Product } = require("../models/product");
 const { Category } = require("../models/category");
@@ -72,20 +75,20 @@ exports.updateShop = async (req, res, next) => {
 
 exports.addProduct = async (req, res) => {
   try {
-    // console.log("before");
     const file = req.file;
-    // console.log("after");
-    // console.log("file===>", file);
-    // const { name, quantity, price, category } = JSON.parse(req.body.data);
     const { name, quantity, sellingPrice, category, retailPrice, description } =
       req.body;
-
     const categoryId = await Category.findOne({ name: category });
     if (!req.file) {
       return res
         .status(StatusCodes.BAD_REQUEST)
         .send({ error: "please add an image for this product" });
     }
+
+    // cloudinary.uploader.upload(file.path, function (err, result) {
+    //   console.log(result.url);
+    //   res.send({ result });
+    // });
 
     const product = new Product({
       name: name,
@@ -217,3 +220,29 @@ const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));
 };
+
+// const uploadToCloudinary = (req) => {
+//   let streamUpload = (req) => {
+//     return new Promise((resolve, reject) => {
+//       let stream = cloudinary.uploader.upload_stream((error, result) => {
+//         if (result) {
+//           console.log("result");
+//           resolve(result);
+//         } else {
+//           console.log("error occured");
+
+//           reject(error);
+//         }
+//       });
+
+//       streamifier.createReadStream(req.file.buffer).pipe(stream);
+//     });
+//   };
+
+//   async function upload(req) {
+//     let result = await streamUpload(req);
+//     console.log(result);
+//   }
+
+//   upload(req);
+// };

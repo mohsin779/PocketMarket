@@ -1,5 +1,7 @@
 const express = require("express");
 const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
 const path = require("path");
 
 require("dotenv").config();
@@ -8,6 +10,11 @@ const app = express();
 
 // app.use(multer().single("image"));
 
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
 require("./config/morgan")(app);
 require("./config/routes")(app);
 

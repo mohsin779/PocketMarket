@@ -136,6 +136,10 @@ exports.addCategory = async (req, res, next) => {
 exports.deleteShop = async (req, res, next) => {
   try {
     const shopId = req.params.shopId;
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      return res.status(404).send({ error: "shop with this ID not found" });
+    }
     await OrderedProduct.deleteMany({ shopId: shopId });
 
     const orders = await Order.find();
@@ -155,7 +159,7 @@ exports.deleteShop = async (req, res, next) => {
       await Shop.findByIdAndRemove({ _id: shopId });
     }
 
-    return res.json({ message: "shop deleted" });
+    return res.json({ message: "shop deleted", shop: shop });
   } catch (err) {
     res.status(500).send({ error: err });
   }
