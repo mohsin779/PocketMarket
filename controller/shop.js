@@ -44,6 +44,25 @@ exports.myProducts = async (req, res, next) => {
   }
 };
 
+exports.getProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.productId;
+    const product = await Product.findById(productId);
+    if (req.user._id.toString() !== product.creator.toString()) {
+      return res.status(401).send({ error: "Not Authorized" });
+    }
+    if (!product) {
+      return res.status(404).send({ error: "Could not find Product." });
+    }
+    res.status(200).json({ message: "Product fetched.", product: product });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
 exports.updateShop = async (req, res, next) => {
   try {
     const shopId = req.user._id;

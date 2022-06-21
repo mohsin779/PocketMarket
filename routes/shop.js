@@ -27,6 +27,7 @@ router.put(
 
 router.post("/update-shop", isAuth, shopController.updateShop);
 router.get("/myShop", isAuth, shopController.myShop);
+router.get("/get-product/:productId", isAuth, shopController.getProduct);
 router.get("/myProducts", isAuth, shopController.myProducts);
 router.get("/orders", isAuth, shopController.orders);
 router.put(
