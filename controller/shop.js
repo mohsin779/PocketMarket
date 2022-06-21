@@ -47,7 +47,7 @@ exports.myProducts = async (req, res, next) => {
 exports.getProduct = async (req, res, next) => {
   try {
     const productId = req.params.productId;
-    const product = await Product.findById(productId);
+    const product = await Product.findById(productId).populate("category");
     if (req.user._id.toString() !== product.creator.toString()) {
       return res.status(401).send({ error: "Not Authorized" });
     }
