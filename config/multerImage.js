@@ -18,8 +18,7 @@ module.exports = function () {
       fileSize: 10000000, // 10000000 Bytes = 10 MB
     },
     fileFilter(req, file, cb) {
-      if (!file.originalname.match(/\.(jpeg|png|svg|jpg|gif)$/)) {
-        console.log("mohsin");
+      if (!file.originalname.match(/\.(jpeg|png|svg|jpg|gif|xlsx)$/)) {
         return cb(new Error("Please upload Image"));
       }
       cb(undefined, true);

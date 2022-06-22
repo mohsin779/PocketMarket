@@ -2,6 +2,8 @@ const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const cloudinary = require("cloudinary").v2;
+const XLSX = require("xlsx");
+
 const { Role } = require("../models/roles");
 const { Shop } = require("../models/shop");
 const { Category } = require("../models/category");
@@ -180,6 +182,29 @@ exports.deleteShop = async (req, res, next) => {
   }
 };
 
+exports.uploadCategories = async (req, res, next) => {
+  var workbook = XLSX.readFile(req.file.path);
+  var sheet_namelist = workbook.SheetNames;
+  var x = 0;
+  sheet_namelist.forEach((element) => {
+    var xlData = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_namelist[x]]);
+    xlData.forEach(async (data) => {
+      const existingCategory = await Category.findOne({
+        name: { $regex: data.name, $options: "i" },
+      });
+      if (!existingCategory) {
+        const category = new Category({
+          name: data.name,
+          imageUrl: data.imageUrl,
+        });
+        const result = await category.save();
+      }
+    });
+    x++;
+  });
+  clearImage(req.file.path);
+  return res.status(200).send({ message: "Data entered successfully!" });
+};
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));

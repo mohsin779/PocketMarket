@@ -4,7 +4,7 @@ const superAdminController = require("../controller/superAdmin");
 const isAuth = require("../middleware/is-auth");
 const isSuperAdmin = require("../middleware/isSuperAdmin");
 const imageUpload = require("../config/multerImage")();
-
+// const { Category } = require("../models/category");
 const router = express.Router();
 
 //Roles
@@ -54,6 +54,14 @@ router.delete(
   isAuth,
   isSuperAdmin,
   superAdminController.deleteUpdateRequest
+);
+
+router.post(
+  "/upload-categories",
+  imageUpload.single("excel"),
+  isAuth,
+  isSuperAdmin,
+  superAdminController.uploadCategories
 );
 
 module.exports = router;
