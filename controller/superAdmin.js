@@ -103,6 +103,16 @@ exports.getUpdateRequests = async (req, res, next) => {
   }
 };
 
+exports.deleteUpdateRequest = async (req, res, next) => {
+  try {
+    const requestID = req.params.requestId;
+    await UpdateRequest.findByIdAndRemove({ _id: requestID });
+    res.status(200).send("request deleted");
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
 exports.addCategory = async (req, res, next) => {
   try {
     const { name } = req.body;
