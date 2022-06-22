@@ -2,12 +2,17 @@ const express = require("express");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const path = require("path");
+const passport = require("passport");
+const session = require("express-session");
 
 require("dotenv").config();
 require("./config/db")();
 const app = express();
 
 // app.use(multer().single("image"));
+app.use(session({ secret: process.env.SUPER_KEY }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,

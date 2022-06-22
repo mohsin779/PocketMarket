@@ -13,7 +13,11 @@ exports.getCategories = async (req, res, next) => {
 
 exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find().populate("category");
+    const categoryId = req.params.categoryId;
+
+    const products = await Product.find({ category: categoryId }).populate(
+      "category"
+    );
     res.status(200).send({ products: products });
   } catch (err) {
     res.status(500).send({ error: err });
