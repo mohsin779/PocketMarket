@@ -146,8 +146,16 @@ exports.addProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
-    const { name, quantity, sellingPrice, category, retailPrice, description } =
-      req.body;
+    const {
+      name,
+      quantity,
+      sellingPrice,
+      category,
+      retailPrice,
+      description,
+      brandName,
+      features,
+    } = req.body;
 
     let imageUrl;
     if (req.file) {
@@ -173,6 +181,8 @@ exports.updateProduct = async (req, res) => {
     product.sellingPrice = sellingPrice;
     product.retailPrice = retailPrice;
     product.description = description;
+    product.brandName = brandName;
+    product.features = features;
     if (imageUrl) {
       product.imageUrl = imageUrl;
     }
