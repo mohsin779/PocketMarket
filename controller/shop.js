@@ -98,8 +98,17 @@ exports.addProduct = async (req, res) => {
   try {
     const file = req.file;
 
-    const { name, quantity, sellingPrice, category, retailPrice, description } =
-      req.body;
+    const {
+      name,
+      quantity,
+      sellingPrice,
+      category,
+      retailPrice,
+      description,
+      brandName,
+      features,
+    } = req.body;
+
     if (!req.file) {
       return res
         .status(StatusCodes.BAD_REQUEST)
@@ -116,6 +125,8 @@ exports.addProduct = async (req, res) => {
       imageUrl: imagePath.secure_url,
       creator: req.user._id,
       category: category,
+      brandName: brandName,
+      features: features,
     });
     await product.save();
     clearImage(file.path);

@@ -1,6 +1,5 @@
 require("dotenv").config();
 var GoogleStrategy = require("passport-google-oauth20").Strategy;
-const { custom } = require("joi");
 const { Customer } = require("../models/customer");
 
 module.exports = async function (passport) {

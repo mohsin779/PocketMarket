@@ -11,6 +11,8 @@ const productSchema = new Schema({
   sellingPrice: Number,
   retailPrice: Number,
   description: String,
+  brandName: String,
+  features: String,
   creator: {
     type: Schema.Types.ObjectId,
     ref: "Shop",
