@@ -3,14 +3,24 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const path = require("path");
 const passport = require("passport");
-const session = require("express-session");
+const expressSession = require("express-session");
 
 require("dotenv").config();
 require("./config/db")();
 const app = express();
 
 // app.use(multer().single("image"));
-app.use(session({ secret: process.env.SUPER_KEY }));
+app.use(
+  expressSession({
+    secret: process.env.SUPER_KEY,
+    resave: true,
+    saveUninitialized: true,
+    // setting the max age to longer duration
+    // maxAge: 24 * 60 * 60 * 1000,
+    // store: new MemoryStore(),
+  })
+);
+
 app.use(passport.initialize());
 app.use(passport.session());
 

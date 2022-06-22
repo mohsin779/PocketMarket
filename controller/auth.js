@@ -132,22 +132,22 @@ exports.customerLogin = async (req, res, next) => {
   }
 };
 
-// exports.googleLogin = async (req, res, next) => {
-//   try {
-//     let token = req.body.token;
-//     const ticket = await client.verifyIdToken({
-//       idToken: token,
-//       audience: process.env.CLIENT_ID,
-//     });
-//     const payload = ticket.getPayload();
-//     const userid = payload["sub"];
-//     if (token) {
-//       res.status(200).json({ token: token, payload: payload });
-//     }
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   }
-// };
+exports.googleLogin = async (req, res, next) => {
+  try {
+    const token = req.user.genAuthToken();
+    const customer = {
+      name: req.user.name,
+      email: req.user.email,
+      _id: req.user._id,
+    };
+    res.status(200).json({
+      customer: customer,
+      token: token,
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
