@@ -31,7 +31,9 @@ exports.myShop = async (req, res, next) => {
 exports.myProducts = async (req, res, next) => {
   try {
     const shopId = req.user._id;
-    const products = await Product.find({ creator: shopId });
+    const products = await Product.find({ creator: shopId }).populate(
+      "category"
+    );
     if (!products) {
       return res.json({ error: "You dont have any product" });
     }
