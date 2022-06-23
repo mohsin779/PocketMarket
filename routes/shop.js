@@ -44,5 +44,7 @@ router.post(
 );
 
 router.get("/download-products", isAuth, shopController.downloadProductsList);
+router.get("/send-code", shopController.sendEmail);
+router.put("/reset-password", shopController.resetPassword);
 
 module.exports = router;

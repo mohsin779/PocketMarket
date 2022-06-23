@@ -3,14 +3,23 @@ const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const cloudinary = require("cloudinary").v2;
 const XLSX = require("xlsx");
+const nodemailer = require("nodemailer");
 
 const { StatusCodes } = require("http-status-codes");
 const { Product } = require("../models/product");
-const { Category } = require("../models/category");
 const { Shop } = require("../models/shop");
 const { UpdateRequest } = require("../models/updateRequests");
 const { OrderedProduct } = require("../models/orderedProduct");
 const { Order } = require("../models/order");
+
+var transporter = nodemailer.createTransport({
+  host: "smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "9b7908fdc202ef",
+    pass: "1f751e6d25a72c",
+  },
+});
 
 exports.myShop = async (req, res, next) => {
   const shopId = req.user._id;
@@ -315,6 +324,49 @@ exports.downloadProductsList = async (req, res, next) => {
         res.download(down);
       }
     });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.sendEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const shop = await Shop.findOne({ email: email });
+    if (!shop) {
+      return res.status(404).send({ error: "Shop with this email not exist" });
+    }
+
+    const code = Math.floor(Math.random() * (99999 - 10000) + 10000);
+
+    transporter.sendMail({
+      to: email,
+      from: "amazonClon@gmail.com",
+      subject: "Password reset link",
+      html:
+        "<h2>Your requested to reset your account password.</h2></br><br>Use the given confirmation code to reset your password</br>code: " +
+        code,
+    });
+    return res.status(200).send({
+      message: "Email sent to " + email + " with password reset code",
+      code: code,
+      email: email,
+    });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const shop = await Shop.findOne({ email: email });
+    const hashedPw = await bcrypt.hash(password, 12);
+
+    shop.password = hashedPw;
+    await shop.save();
+    res.status(200).send({ message: "Your password updated successfuly." });
   } catch (err) {
     res.status(500).send({ error: err });
   }

@@ -2,11 +2,21 @@ const bcrypt = require("bcryptjs");
 const stripe = require("stripe")(
   "sk_test_51L510HD6MLn8tqd5C7eNFKZrwPYh4p6yRCdzY25ByZwS2EYNtUqkqOWw8O4FdFNcRdNxHlU1VTD50wGmG9xKicqK00ojNx5w5N"
 );
+const nodemailer = require("nodemailer");
 
 const { Customer } = require("../models/customer");
 const { Product } = require("../models/product");
 const { Order } = require("../models/order");
 const { OrderedProduct } = require("../models/orderedProduct");
+
+var transporter = nodemailer.createTransport({
+  host: "smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "9b7908fdc202ef",
+    pass: "1f751e6d25a72c",
+  },
+});
 
 exports.updateCustomer = async (req, res, next) => {
   try {
@@ -17,7 +27,6 @@ exports.updateCustomer = async (req, res, next) => {
     if (!customer) {
       return res.status(404).send("Could not find Customer");
     }
-    // console.log(customerId, " && ", req.user._id);
 
     if (customer._id.toString() !== req.user._id.toString()) {
       return res.status(403).send({ error: "Not authorized!" });
@@ -166,4 +175,50 @@ const updateProductsQuantity = async (products) => {
     product.quantity = updatedQuantity;
     await product.save();
   });
+};
+
+exports.sendEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const customer = await Customer.findOne({ email: email });
+
+    if (!customer) {
+      return res
+        .status(404)
+        .send({ error: "customer with this email not exist" });
+    }
+
+    const code = Math.floor(Math.random() * (99999 - 10000) + 10000);
+
+    transporter.sendMail({
+      to: email,
+      from: "amazonClon@gmail.com",
+      subject: "Password reset link",
+      html:
+        "<h2>Your requested to reset your account password.</h2></br><br>Use the given confirmation code to reset your password</br>code: " +
+        code,
+    });
+    return res.status(200).send({
+      message: "Email sent to " + email + " with password reset code",
+      code: code,
+      email: email,
+    });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const customer = await Customer.findOne({ email: email });
+    const hashedPw = await bcrypt.hash(password, 12);
+
+    customer.password = hashedPw;
+    await customer.save();
+    res.status(200).send({ message: "Your password updated successfuly." });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
 };
