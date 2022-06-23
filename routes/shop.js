@@ -4,6 +4,7 @@ const router = express.Router();
 const shopController = require("../controller/shop");
 const isAuth = require("../middleware/is-auth");
 const imageUpload = require("../config/multerImage")();
+const fileUpload = require("../config/multerFile")();
 
 router.post(
   "/add-product",
@@ -34,6 +35,12 @@ router.put(
   "/update-order-status/:orderId",
   isAuth,
   shopController.updateOrderStatus
+);
+router.post(
+  "/upload-products",
+  fileUpload.single("excel"),
+  isAuth,
+  shopController.uploadProducts
 );
 
 module.exports = router;

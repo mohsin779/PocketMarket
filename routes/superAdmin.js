@@ -4,6 +4,7 @@ const superAdminController = require("../controller/superAdmin");
 const isAuth = require("../middleware/is-auth");
 const isSuperAdmin = require("../middleware/isSuperAdmin");
 const imageUpload = require("../config/multerImage")();
+const fileUpload = require("../config/multerFile")();
 // const { Category } = require("../models/category");
 const router = express.Router();
 
@@ -58,7 +59,7 @@ router.delete(
 
 router.post(
   "/upload-categories",
-  imageUpload.single("excel"),
+  fileUpload.single("excel"),
   isAuth,
   isSuperAdmin,
   superAdminController.uploadCategories

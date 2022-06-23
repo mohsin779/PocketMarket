@@ -2,7 +2,7 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const cloudinary = require("cloudinary").v2;
-const streamifier = require("streamifier");
+const XLSX = require("xlsx");
 
 const { StatusCodes } = require("http-status-codes");
 const { Product } = require("../models/product");
@@ -217,6 +217,45 @@ exports.deleteProduct = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+  }
+};
+
+exports.uploadProducts = async (req, res, next) => {
+  try {
+    console.log("before");
+
+    var workbook = XLSX.readFile(req.file.path);
+    console.log("upload products");
+
+    var sheet_namelist = workbook.SheetNames;
+    var x = 0;
+
+    sheet_namelist.forEach((element) => {
+      var xlData = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_namelist[x]]);
+
+      // Product.insertMany(xlData);
+      xlData.forEach(async (data) => {
+        const product = new Product({
+          name: data.name,
+          quantity: data.quantity,
+          imageUrl: data.imageUrl,
+          sellingPrice: data.sellingPrice,
+          retailPrice: data.retailPrice,
+          description: data.description,
+          brandName: data.brandName,
+          features: data.features,
+          creator: req.user._id,
+          category: data.category,
+        });
+        const result = await product.save();
+      });
+
+      x++;
+    });
+    clearImage(req.file.path);
+    return res.status(200).send({ message: "Products Entered Successfully!" });
+  } catch (err) {
+    res.status(500).send({ error: err });
   }
 };
 

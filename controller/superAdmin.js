@@ -183,27 +183,31 @@ exports.deleteShop = async (req, res, next) => {
 };
 
 exports.uploadCategories = async (req, res, next) => {
-  var workbook = XLSX.readFile(req.file.path);
-  var sheet_namelist = workbook.SheetNames;
-  var x = 0;
-  sheet_namelist.forEach((element) => {
-    var xlData = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_namelist[x]]);
-    xlData.forEach(async (data) => {
-      const existingCategory = await Category.findOne({
-        name: { $regex: data.name, $options: "i" },
-      });
-      if (!existingCategory) {
-        const category = new Category({
-          name: data.name,
-          imageUrl: data.imageUrl,
+  try {
+    var workbook = XLSX.readFile(req.file.path);
+    var sheet_namelist = workbook.SheetNames;
+    var x = 0;
+    sheet_namelist.forEach((element) => {
+      var xlData = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_namelist[x]]);
+      xlData.forEach(async (data) => {
+        const existingCategory = await Category.findOne({
+          name: { $regex: data.name, $options: "i" },
         });
-        const result = await category.save();
-      }
+        if (!existingCategory) {
+          const category = new Category({
+            name: data.name,
+            imageUrl: data.imageUrl,
+          });
+          const result = await category.save();
+        }
+      });
+      x++;
     });
-    x++;
-  });
-  clearImage(req.file.path);
-  return res.status(200).send({ message: "Data entered successfully!" });
+    clearImage(req.file.path);
+    return res.status(200).send({ message: "Data entered successfully!" });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
 };
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
