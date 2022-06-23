@@ -209,6 +209,29 @@ exports.uploadCategories = async (req, res, next) => {
     res.status(500).send({ error: err });
   }
 };
+
+exports.downloadCategoriesList = async (req, res, next) => {
+  try {
+    var wb = XLSX.utils.book_new(); //new workbook
+    Category.find((err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        var temp = JSON.stringify(data);
+        temp = JSON.parse(temp);
+        var ws = XLSX.utils.json_to_sheet(temp);
+
+        var down = path.basename("/uploads/categories.xlsx");
+
+        XLSX.utils.book_append_sheet(wb, ws, "sheet1");
+        XLSX.writeFile(wb, down);
+        res.download(down);
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));

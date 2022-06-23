@@ -43,4 +43,6 @@ router.post(
   shopController.uploadProducts
 );
 
+router.get("/download-products", isAuth, shopController.downloadProductsList);
+
 module.exports = router;

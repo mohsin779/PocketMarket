@@ -65,4 +65,11 @@ router.post(
   superAdminController.uploadCategories
 );
 
+router.get(
+  "/download-categories",
+  isAuth,
+  isSuperAdmin,
+  superAdminController.downloadCategoriesList
+);
+
 module.exports = router;
