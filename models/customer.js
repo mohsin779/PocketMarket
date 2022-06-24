@@ -6,7 +6,6 @@ const Schema = mongoose.Schema;
 
 const customerSchema = new Schema({
   name: String,
-  address: String,
   phoneNumber: Number,
   email: String,
   password: String,
@@ -27,7 +26,6 @@ customerSchema.methods.genAuthToken = function () {
 
 const validation = Joi.object({
   name: Joi.string().alphanum().min(3).max(25).trim(true).required(),
-  address: Joi.string().required(),
   email: Joi.string().email().trim(true).required(),
   password: Joi.string().min(8).trim(true).required(),
   phoneNumber: Joi.string()

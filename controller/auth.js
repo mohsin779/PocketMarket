@@ -76,21 +76,29 @@ exports.adminLogin = async (req, res, next) => {
 };
 
 exports.customerSignup = async (req, res, next) => {
-  const { name, email, password, address, phone } = req.body;
-
   try {
+    const { name, email, password, phone } = req.body;
+
+    const existingCustomer = await Customer.findOne({ email: email });
+    if (existingCustomer) {
+      return res
+        .status(401)
+        .send({ error: "A Customer with this email already exists" });
+    }
     const hashedPw = await bcrypt.hash(password, 12);
 
     const customer = new Customer({
       name: name,
-      address: address,
       phoneNumber: phone,
       email: email,
       password: hashedPw,
     });
     const result = await customer.save();
+    const token = result.genAuthToken();
 
-    res.status(201).json({ message: "Customer created!", customer: customer });
+    res
+      .status(201)
+      .json({ message: "Customer created!", token: token, customer: customer });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
