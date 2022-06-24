@@ -36,6 +36,7 @@
     "passport-google-oauth20": "^2.0.0",
     "streamifier": "^0.1.1",
     "stripe": "^9.8.0",
+    "twilio": "^3.77.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

@@ -3,6 +3,10 @@ const stripe = require("stripe")(
   "sk_test_51L510HD6MLn8tqd5C7eNFKZrwPYh4p6yRCdzY25ByZwS2EYNtUqkqOWw8O4FdFNcRdNxHlU1VTD50wGmG9xKicqK00ojNx5w5N"
 );
 const nodemailer = require("nodemailer");
+const client = require("twilio")(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 
 const { Customer } = require("../models/customer");
 const { Product } = require("../models/product");
@@ -177,7 +181,7 @@ const updateProductsQuantity = async (products) => {
   });
 };
 
-exports.sendEmail = async (req, res, next) => {
+exports.sendEmailAndMessage = async (req, res, next) => {
   try {
     const { email } = req.body;
 
@@ -199,8 +203,17 @@ exports.sendEmail = async (req, res, next) => {
         "<h2>Your requested to reset your account password.</h2></br><br>Use the given confirmation code to reset your password</br>code: " +
         code,
     });
+
+    //TWILIO SETUP
+    client.messages.create({
+      body: "your reset password confirmation code is " + code,
+      messagingServiceSid: process.env.MESSAGING_SERVICE_SID,
+      to: "+92" + customer.phoneNumber,
+    });
+    //END TWILIO SETUP
+
     return res.status(200).send({
-      message: "Email sent to " + email + " with password reset code",
+      message: "We send an Email at: " + email + " with password reset code",
       code: code,
       email: email,
     });
