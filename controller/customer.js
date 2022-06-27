@@ -138,18 +138,10 @@ exports.getAddresses = async (req, res, next) => {
 
 exports.addNewAddress = async (req, res, next) => {
   try {
-    const {
-      customerId,
-      country,
-      state,
-      city,
-      area,
-      houseNumber,
-      streetNumber,
-    } = req.body;
+    const { country, state, city, area, houseNumber, streetNumber } = req.body;
 
     const address = new Address({
-      customerId: customerId,
+      customerId: req.user._id,
       country: country,
       state: state,
       city: city,
@@ -167,7 +159,6 @@ exports.addNewAddress = async (req, res, next) => {
   }
 };
 exports.deleteAddress = async (req, res, next) => {
-  console.log("inside delete");
   try {
     const { addressId } = req.params;
 

@@ -17,8 +17,8 @@ customerSchema.methods.genAuthToken = function () {
       email: this.email,
       _id: this._id.toString(),
     },
-    process.env.SUPER_KEY,
-    { expiresIn: "1h" }
+    process.env.SUPER_KEY
+    // { expiresIn: "1h" }
   );
 
   return token;
