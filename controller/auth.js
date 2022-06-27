@@ -2,10 +2,11 @@ require("dotenv").config();
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { StatusCodes } = require("http-status-codes");
 
 const { SuperAdmin } = require("../models/superAdmin");
 const { Shop } = require("../models/shop");
-const { Customer } = require("../models/customer");
+const { Customer, CustomerValidations } = require("../models/customer");
 
 // Google Auth
 // const { OAuth2Client } = require("google-auth-library");
@@ -77,7 +78,14 @@ exports.adminLogin = async (req, res, next) => {
 
 exports.customerSignup = async (req, res, next) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { error } = CustomerValidations.validate(req.body);
+    if (error) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({ error: error.details[0].message });
+    }
+
+    const { name, email, password, phoneNumber } = req.body;
 
     const existingCustomer = await Customer.findOne({ email: email });
     if (existingCustomer) {
@@ -89,9 +97,9 @@ exports.customerSignup = async (req, res, next) => {
 
     const customer = new Customer({
       name: name,
-      phoneNumber: phone,
       email: email,
       password: hashedPw,
+      phoneNumber: phoneNumber,
     });
     const result = await customer.save();
     const token = result.genAuthToken();

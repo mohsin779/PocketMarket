@@ -15,4 +15,18 @@ router.get("/order-detail/:orderId", isAuth, customerController.orderDetails);
 router.get("/orders-history", isAuth, customerController.orderHistory);
 router.get("/send-code", customerController.sendEmailAndMessage);
 router.put("/reset-password", customerController.resetPassword);
+router.get("/countries-list", customerController.getCountries);
+router.get("/states-list/:countryCode", customerController.getStates);
+router.get(
+  "/cities-list/:countryCode/:stateCode",
+  customerController.getCities
+);
+router.post("/add-new-address", isAuth, customerController.addNewAddress);
+router.delete(
+  "/delete-address/:addressId",
+  isAuth,
+  customerController.deleteAddress
+);
+router.get("/get-addresses", isAuth, customerController.getAddresses);
+
 module.exports = router;

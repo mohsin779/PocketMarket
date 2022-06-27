@@ -9,6 +9,11 @@ const orderSchema = new Schema({
     ref: "Customer",
     require: true,
   },
+  addressId: {
+    type: Schema.Types.ObjectId,
+    ref: "Address",
+    require: true,
+  },
   status: {
     type: String,
   },

@@ -5,14 +5,14 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const productSchema = new Schema({
-  name: String,
+  name: Object,
   quantity: Number,
   imageUrl: String,
   sellingPrice: Number,
   retailPrice: Number,
-  description: String,
+  description: Object,
   brandName: String,
-  features: String,
+  features: Object,
   creator: {
     type: Schema.Types.ObjectId,
     ref: "Shop",

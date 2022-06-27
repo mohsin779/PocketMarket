@@ -2,16 +2,22 @@ const bcrypt = require("bcryptjs");
 const stripe = require("stripe")(
   "sk_test_51L510HD6MLn8tqd5C7eNFKZrwPYh4p6yRCdzY25ByZwS2EYNtUqkqOWw8O4FdFNcRdNxHlU1VTD50wGmG9xKicqK00ojNx5w5N"
 );
+
 const nodemailer = require("nodemailer");
 const client = require("twilio")(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 
+const CountryData = require("country-state-city").Country.getAllCountries();
+const StateData = require("country-state-city").State;
+const CityData = require("country-state-city").City;
+
 const { Customer } = require("../models/customer");
 const { Product } = require("../models/product");
 const { Order } = require("../models/order");
 const { OrderedProduct } = require("../models/orderedProduct");
+const { Address } = require("../models/address");
 
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -21,6 +27,39 @@ var transporter = nodemailer.createTransport({
     pass: "1f751e6d25a72c",
   },
 });
+
+exports.getCountries = async (req, res, next) => {
+  const newCountries = CountryData.map((country) => {
+    return { name: country.name, countryCode: country.isoCode };
+  });
+
+  return res.status(200).send({ countries: newCountries });
+};
+
+exports.getStates = async (req, res, next) => {
+  const { countryCode } = req.params;
+
+  const states = StateData.getStatesOfCountry(countryCode);
+
+  const newStates = states.map((state) => {
+    return { name: state.name, stateCode: state.isoCode };
+  });
+
+  return res.status(200).send({ states: newStates });
+};
+
+exports.getCities = async (req, res, next) => {
+  const { countryCode, stateCode } = req.params;
+
+  const cities = CityData.getCitiesOfState(countryCode, stateCode);
+
+  const newCities = cities.map((city) => {
+    console.log(city);
+    return { name: city.name, cityCode: city.isoCode };
+  });
+
+  return res.status(200).send({ cities: newCities });
+};
 
 exports.updateCustomer = async (req, res, next) => {
   try {
@@ -82,9 +121,78 @@ exports.orderDetails = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getAddresses = async (req, res, next) => {
+  try {
+    const customerId = req.user._id;
+    const addresses = await Address.find({ customerId: customerId });
+    if (!addresses) {
+      return res.json({ error: "No Address found" });
+    }
+    return res.json({ addresses: addresses });
+  } catch (err) {
+    res.status(500).send({ error: err });
+    next(err);
+  }
+};
+
+exports.addNewAddress = async (req, res, next) => {
+  try {
+    const {
+      customerId,
+      country,
+      state,
+      city,
+      area,
+      houseNumber,
+      streetNumber,
+    } = req.body;
+
+    const address = new Address({
+      customerId: customerId,
+      country: country,
+      state: state,
+      city: city,
+      area: area,
+      houseNumber: houseNumber,
+      streetNumber: streetNumber,
+    });
+
+    const result = await address.save();
+    if (result) {
+      res.status(200).send({ message: "Address added.", address: result });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+exports.deleteAddress = async (req, res, next) => {
+  console.log("inside delete");
+  try {
+    const { addressId } = req.params;
+
+    const address = await Address.findById(addressId);
+
+    if (!address) {
+      return res.status(404).send("Could not find Address");
+    }
+    if (address.customerId.toString() !== req.user._id) {
+      return res.status(403).send("Not authorized!");
+    }
+
+    const result = await Address.findByIdAndRemove(addressId);
+    if (result) {
+      res.status(200).json({ message: "Address Deleted" });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+    next(err);
+  }
+};
+
 exports.addToOrder = async (req, res, next) => {
   try {
-    const { paymentMethod, products } = req.body;
+    const { paymentMethod, products, addressId } = req.body;
 
     const productData = await Promise.all(
       products.map(async (prod) => {
@@ -111,13 +219,13 @@ exports.addToOrder = async (req, res, next) => {
         cancel_url: req.protocol + "://" + req.get("host"), //http://localhost:8080
       });
       if (session) {
-        saveOrder(req, products, totalPrice);
+        saveOrder(req, products, totalPrice, addressId);
         return res.json({ id: session.id, total: totalPrice });
       } else {
         return res.status(401).send({ error: "No valid API key provided." });
       }
     } else {
-      saveOrder(req, products, totalPrice);
+      saveOrder(req, products, totalPrice, addressId);
       return res.json({ message: "order added!" });
     }
   } catch (err) {
@@ -149,9 +257,10 @@ exports.orderHistory = async (req, res, next) => {
   }
 };
 
-const saveOrder = async (req, products, totalPrice) => {
+const saveOrder = async (req, products, totalPrice, addressId) => {
   const order = new Order({
     customerId: req.user._id,
+    addressId: addressId,
     status: "pending",
     totalPrice: totalPrice,
   });

@@ -108,14 +108,17 @@ exports.addProduct = async (req, res) => {
     const file = req.file;
 
     const {
-      name,
+      nameEn,
+      nameFr,
       quantity,
       sellingPrice,
       category,
       retailPrice,
-      description,
+      descriptionEn,
+      descriptionFr,
       brandName,
-      features,
+      featuresEn,
+      featuresFr,
     } = req.body;
 
     if (!req.file) {
@@ -124,13 +127,15 @@ exports.addProduct = async (req, res) => {
         .send({ error: "please add an image for this product" });
     }
     let imagePath = await cloudinary.uploader.upload(file.path);
-
+    const names = { nameEn, nameFr };
+    const descriptions = { descriptionEn, descriptionFr };
+    const features = { featuresEn, featuresFr };
     const product = new Product({
-      name: name,
+      name: names,
       quantity: quantity,
       sellingPrice: sellingPrice,
       retailPrice: retailPrice,
-      description: description,
+      description: descriptions,
       imageUrl: imagePath.secure_url,
       creator: req.user._id,
       category: category,
