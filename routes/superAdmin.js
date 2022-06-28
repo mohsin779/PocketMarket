@@ -1,4 +1,5 @@
 const express = require("express");
+const multer = require("multer");
 
 const superAdminController = require("../controller/superAdmin");
 const isAuth = require("../middleware/is-auth");

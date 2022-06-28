@@ -118,9 +118,11 @@ exports.deleteUpdateRequest = async (req, res, next) => {
 exports.addCategory = async (req, res, next) => {
   try {
     const { name } = req.body;
-    let imagePath = await cloudinary.uploader.upload(req.file.path);
-    clearImage(req.file.path);
 
+    let imagePath = await cloudinary.uploader.upload(req.file.path);
+
+    clearImage(req.file.path);
+    console.log(newName);
     const existingCategory = await Category.findOne({ name: name });
     if (existingCategory) {
       return res
@@ -134,7 +136,7 @@ exports.addCategory = async (req, res, next) => {
     }
 
     const category = new Category({
-      name: name,
+      name: { nameEn, nameFr },
       imageUrl: imagePath.secure_url,
     });
     const result = await category.save();

@@ -30,15 +30,15 @@ exports.myShop = async (req, res, next) => {
     }
     res.status(200).json({ shop: shop });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: err });
+
     next(err);
   }
 };
 
 exports.myProducts = async (req, res, next) => {
   try {
+    const { ln } = req.params;
     const shopId = req.user._id;
     const products = await Product.find({ creator: shopId }).populate(
       "category"
@@ -46,17 +46,21 @@ exports.myProducts = async (req, res, next) => {
     if (!products) {
       return res.json({ error: "You dont have any product" });
     }
-    return res.json({ products: products });
+    const prods = products.map((p) => {
+      return productsInSelectedLanguage(ln, p);
+    });
+    console.log(prods);
+    return res.json({ products: prods });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: err });
+
     next(err);
   }
 };
 
 exports.getProduct = async (req, res, next) => {
   try {
+    const { ln } = req.params;
     const productId = req.params.productId;
     const product = await Product.findById(productId).populate("category");
     if (req.user._id.toString() !== product.creator.toString()) {
@@ -65,11 +69,14 @@ exports.getProduct = async (req, res, next) => {
     if (!product) {
       return res.status(404).send({ error: "Could not find Product." });
     }
-    res.status(200).json({ message: "Product fetched.", product: product });
+    let fetchedProduct = productsInSelectedLanguage(ln, product);
+
+    res
+      .status(200)
+      .json({ message: "Product fetched.", product: fetchedProduct });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: err });
+
     next(err);
   }
 };
@@ -96,9 +103,8 @@ exports.updateShop = async (req, res, next) => {
       .status(200)
       .json({ message: "Request sent Successfully to SuperAdmin" });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: err });
+
     next(err);
   }
 };
@@ -106,19 +112,16 @@ exports.updateShop = async (req, res, next) => {
 exports.addProduct = async (req, res) => {
   try {
     const file = req.file;
-
+    const { ln } = req.params;
     const {
-      nameEn,
-      nameFr,
+      name,
       quantity,
       sellingPrice,
       category,
       retailPrice,
-      descriptionEn,
-      descriptionFr,
+      description,
       brandName,
-      featuresEn,
-      featuresFr,
+      features,
     } = req.body;
 
     if (!req.file) {
@@ -127,20 +130,32 @@ exports.addProduct = async (req, res) => {
         .send({ error: "please add an image for this product" });
     }
     let imagePath = await cloudinary.uploader.upload(file.path);
-    const names = { nameEn, nameFr };
-    const descriptions = { descriptionEn, descriptionFr };
-    const features = { featuresEn, featuresFr };
+    let nameEn = "",
+      nameFr = "",
+      descriptionEn = "",
+      descriptionFr = "",
+      featuresEn = "",
+      featuresFr = "";
+    if (ln == "en") {
+      nameEn = name;
+      descriptionEn = description;
+      featuresEn = features;
+    } else if (ln == "fr") {
+      nameFr = name;
+      descriptionFr = description;
+      featuresFr = features;
+    }
     const product = new Product({
-      name: names,
+      name: { nameEn, nameFr },
       quantity: quantity,
       sellingPrice: sellingPrice,
       retailPrice: retailPrice,
-      description: descriptions,
+      description: { descriptionEn, descriptionFr },
       imageUrl: imagePath.secure_url,
       creator: req.user._id,
       category: category,
       brandName: brandName,
-      features: features,
+      features: { featuresEn, featuresFr },
     });
     await product.save();
     clearImage(file.path);
@@ -159,7 +174,8 @@ exports.addProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const productId = req.params.productId;
+    const { productId, ln } = req.params;
+
     const {
       name,
       quantity,
@@ -190,13 +206,21 @@ exports.updateProduct = async (req, res) => {
       filename = filename.split(".")[0];
       cloudinary.uploader.destroy(filename);
     }
-    product.name = name;
+
+    if (ln == "en") {
+      product.name.nameEn = name;
+      product.description.descriptionEn = description;
+      product.features.featuresEn = features;
+    } else if (ln == "fr") {
+      product.name.nameFr = name;
+      product.description.descriptionFr = description;
+      product.features.featuresFr = features;
+    }
+
     product.quantity = quantity;
     product.sellingPrice = sellingPrice;
     product.retailPrice = retailPrice;
-    product.description = description;
     product.brandName = brandName;
-    product.features = features;
     if (imageUrl) {
       product.imageUrl = imageUrl;
     }
@@ -236,10 +260,7 @@ exports.deleteProduct = async (req, res, next) => {
 
 exports.uploadProducts = async (req, res, next) => {
   try {
-    console.log("before");
-
     var workbook = XLSX.readFile(req.file.path);
-    console.log("upload products");
 
     var sheet_namelist = workbook.SheetNames;
     var x = 0;
@@ -249,15 +270,21 @@ exports.uploadProducts = async (req, res, next) => {
 
       // Product.insertMany(xlData);
       xlData.forEach(async (data) => {
+        const nameEn = data.nameEn;
+        const nameFr = data.nameFr;
+        const descriptionEn = data.descriptionEn;
+        const descriptionFr = data.descriptionFr;
+        const featuresEn = data.featuresEn;
+        const featuresFr = data.featuresFr;
         const product = new Product({
-          name: data.name,
+          name: { nameEn, nameFr },
           quantity: data.quantity,
           imageUrl: data.imageUrl,
           sellingPrice: data.sellingPrice,
           retailPrice: data.retailPrice,
-          description: data.description,
+          description: { descriptionEn, descriptionFr },
           brandName: data.brandName,
-          features: data.features,
+          features: { featuresEn, featuresFr },
           creator: req.user._id,
           category: data.category,
         });
@@ -377,6 +404,55 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
+const productsInSelectedLanguage = (ln, product) => {
+  let fetchedProduct;
+  if (ln == "en") {
+    fetchedProduct = {
+      ...product._doc,
+      name: product.name.nameEn,
+      description: product.description.descriptionEn,
+      features: product.features.featuresEn,
+    };
+    if (fetchedProduct.name == "") {
+      fetchedProduct = { ...fetchedProduct, name: product.name.nameFr };
+    }
+    if (fetchedProduct.description == "") {
+      fetchedProduct = {
+        ...fetchedProduct,
+        description: product.description.descriptionFr,
+      };
+    }
+    if (fetchedProduct.features == "") {
+      fetchedProduct = {
+        ...fetchedProduct,
+        features: product.features.featuresFr,
+      };
+    }
+  } else if (ln == "fr") {
+    fetchedProduct = {
+      ...product._doc,
+      name: product.name.nameFr,
+      description: product.description.descriptionFr,
+      features: product.features.featuresFr,
+    };
+    if (fetchedProduct.name == "") {
+      fetchedProduct = { ...fetchedProduct, name: product.name.nameEn };
+    }
+    if (fetchedProduct.description == "") {
+      fetchedProduct = {
+        ...fetchedProduct,
+        description: product.description.descriptionEn,
+      };
+    }
+    if (fetchedProduct.features == "") {
+      fetchedProduct = {
+        ...fetchedProduct,
+        features: product.features.featuresEn,
+      };
+    }
+  }
+  return fetchedProduct;
+};
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));

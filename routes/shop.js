@@ -7,7 +7,7 @@ const imageUpload = require("../config/multerImage")();
 const fileUpload = require("../config/multerFile")();
 
 router.post(
-  "/add-product",
+  "/add-product/:ln",
   isAuth,
   imageUpload.single("image"),
   shopController.addProduct
@@ -28,8 +28,8 @@ router.put(
 
 router.post("/update-shop", isAuth, shopController.updateShop);
 router.get("/myShop", isAuth, shopController.myShop);
-router.get("/get-product/:productId", isAuth, shopController.getProduct);
-router.get("/myProducts", isAuth, shopController.myProducts);
+router.get("/get-product/:productId/:ln", isAuth, shopController.getProduct);
+router.get("/myProducts/:ln", isAuth, shopController.myProducts);
 router.get("/orders", isAuth, shopController.orders);
 router.put(
   "/update-order-status/:orderId",

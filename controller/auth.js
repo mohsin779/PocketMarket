@@ -8,10 +8,6 @@ const { SuperAdmin } = require("../models/superAdmin");
 const { Shop } = require("../models/shop");
 const { Customer, CustomerValidations } = require("../models/customer");
 
-// Google Auth
-// const { OAuth2Client } = require("google-auth-library");
-// const client = new OAuth2Client(process.env.CLIENT_ID);
-
 exports.shopLogin = async (req, res, next) => {
   const { email, password } = req.body;
 

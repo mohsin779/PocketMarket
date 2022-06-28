@@ -19,8 +19,8 @@ superAdminSchema.methods.genAuthToken = function () {
       _id: this._id.toString(),
       role: this.role,
     },
-    process.env.SUPER_KEY,
-    { expiresIn: "1h" }
+    process.env.SUPER_KEY
+    // { expiresIn: "1h" }
   );
 
   return token;
