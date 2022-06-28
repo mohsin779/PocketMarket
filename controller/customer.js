@@ -293,7 +293,7 @@ const saveOrder = async (req, products, totalPrice, addressId) => {
       orderId: order._id,
       productId: product._id,
       quantity: prod.quantity,
-      unitPrice: product.retailPrice,
+      unitPrice: product.sellingPrice,
       name: product.name,
       shopId: product.creator,
     });
