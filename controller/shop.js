@@ -49,7 +49,6 @@ exports.myProducts = async (req, res, next) => {
     const prods = products.map((p) => {
       return productsInSelectedLanguage(ln, p);
     });
-    console.log(prods);
     return res.json({ products: prods });
   } catch (err) {
     res.status(500).send({ error: err });

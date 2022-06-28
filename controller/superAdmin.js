@@ -117,14 +117,27 @@ exports.deleteUpdateRequest = async (req, res, next) => {
 
 exports.addCategory = async (req, res, next) => {
   try {
+    const { ln } = req.params;
     const { name } = req.body;
-
+    let en = "",
+      fr = "";
     let imagePath = await cloudinary.uploader.upload(req.file.path);
-
+    if (ln == "en") {
+      en = name;
+    } else if (ln == "fr") {
+      fr = name;
+    }
     clearImage(req.file.path);
-    console.log(newName);
-    const existingCategory = await Category.findOne({ name: name });
-    if (existingCategory) {
+
+    const categories = await Category.find();
+
+    let checkCategory = categories.some(
+      (category) => category.name[ln] == name
+    );
+
+    // console.log(checkCategory);
+
+    if (checkCategory) {
       return res
         .status(401)
         .send({ error: "A Category with this name already exists" });
@@ -134,9 +147,8 @@ exports.addCategory = async (req, res, next) => {
         .status(StatusCodes.BAD_REQUEST)
         .send({ error: "please add an image for this category" });
     }
-
     const category = new Category({
-      name: { nameEn, nameFr },
+      name: { en, fr },
       imageUrl: imagePath.secure_url,
     });
     const result = await category.save();

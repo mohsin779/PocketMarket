@@ -31,7 +31,7 @@ router.put(
 );
 
 router.post(
-  "/add-category",
+  "/:ln/add-category/",
   isAuth,
   isSuperAdmin,
   imageUpload.single("image"),

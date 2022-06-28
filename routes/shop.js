@@ -20,7 +20,7 @@ router.delete(
 );
 
 router.put(
-  "/update-product/:productId",
+  ":ln/update-product/:productId",
   isAuth,
   imageUpload.single("image"),
   shopController.updateProduct

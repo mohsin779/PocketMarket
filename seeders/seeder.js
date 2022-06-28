@@ -17,9 +17,11 @@ const seeder = async () => {
     .catch((err) => console.error("Could not connect to MongoDb... ", err));
 
   const roles = ["Super admin", "Shop"];
-  const categories = ["Electronics", "Kitchen"];
+  const categoriesEn = ["Electronics", "Kitchen"];
+  const categoriesFr = ["électronique", "cuisine"];
+
   const category_images = [
-    "uploads/image_0000000000000.jpg",
+    "https://res.cloudinary.com/dyppzmrda/image/upload/v1655794565/ticcwruqw97891jznlt6.jpg",
     "uploads/image_0000000000001.jpg",
   ];
 
@@ -27,10 +29,12 @@ const seeder = async () => {
     const role = new Role({ name: item });
     await role.save();
   });
-
-  categories.map(async (name, index) => {
+  let en, fr;
+  categoriesEn.map(async (name, index) => {
+    en = name;
+    fr = categoriesFr[index];
     const category = new Category({
-      name: name,
+      name: { en, fr },
       imageUrl: category_images[index],
     });
 
