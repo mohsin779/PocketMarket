@@ -260,6 +260,7 @@ exports.deleteProduct = async (req, res, next) => {
 
 exports.uploadProducts = async (req, res, next) => {
   try {
+    const { ln } = req.params;
     var workbook = XLSX.readFile(req.file.path);
 
     var sheet_namelist = workbook.SheetNames;
@@ -270,12 +271,21 @@ exports.uploadProducts = async (req, res, next) => {
 
       // Product.insertMany(xlData);
       xlData.forEach(async (data) => {
-        const nameEn = data.nameEn;
-        const nameFr = data.nameFr;
-        const descriptionEn = data.descriptionEn;
-        const descriptionFr = data.descriptionFr;
-        const featuresEn = data.featuresEn;
-        const featuresFr = data.featuresFr;
+        let nameEn = "",
+          nameFr = "",
+          descriptionEn = "",
+          descriptionFr = "",
+          featuresEn = "",
+          featuresFr = "";
+        if (ln == "en") {
+          nameEn = data.name;
+          descriptionEn = data.description;
+          featuresEn = data.features;
+        } else if (ln == "fr") {
+          nameFr = data.name;
+          descriptionFr = data.description;
+          featuresFr = data.features;
+        }
         const product = new Product({
           name: { nameEn, nameFr },
           quantity: data.quantity,

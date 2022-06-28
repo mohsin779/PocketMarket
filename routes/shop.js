@@ -37,13 +37,13 @@ router.put(
   shopController.updateOrderStatus
 );
 router.post(
-  "/upload-products",
+  "/upload-products/:ln",
   fileUpload.single("excel"),
   isAuth,
   shopController.uploadProducts
 );
 
-router.get("/download-products", isAuth, shopController.downloadProductsList);
+router.get("/download-products", shopController.downloadProductsList);
 router.get("/send-code", shopController.sendEmail);
 router.put("/reset-password", shopController.resetPassword);
 
