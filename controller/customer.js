@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const stripe = require("stripe")(
   "sk_test_51L510HD6MLn8tqd5C7eNFKZrwPYh4p6yRCdzY25ByZwS2EYNtUqkqOWw8O4FdFNcRdNxHlU1VTD50wGmG9xKicqK00ojNx5w5N"
 );
+const { StatusCodes } = require("http-status-codes");
 
 const nodemailer = require("nodemailer");
 const client = require("twilio")(
@@ -18,6 +19,7 @@ const { Product } = require("../models/product");
 const { Order } = require("../models/order");
 const { OrderedProduct } = require("../models/orderedProduct");
 const { Address } = require("../models/address");
+const { Card, CardValidations } = require("../models/card");
 
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -115,9 +117,8 @@ exports.orderDetails = async (req, res, next) => {
 
     return res.json({ orderedProduct: orderedProduct });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: err });
+
     next(err);
   }
 };
@@ -220,10 +221,40 @@ exports.addToOrder = async (req, res, next) => {
       return res.json({ message: "order added!" });
     }
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: err });
+
     next(err);
+  }
+};
+
+exports.addCard = async (req, res, next) => {
+  try {
+    const { error } = CardValidations.validate(req.body);
+    if (error) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({ error: error.details[0].message });
+    }
+
+    const { firstName, lastName, cardNumber, expiryDate, securityCode } =
+      req.body;
+
+    const card = new Card({
+      customerId: req.user._id,
+      firstName: firstName,
+      lastName: lastName,
+      cardNumber: cardNumber,
+      expiryDate: expiryDate,
+      securityCode: securityCode,
+    });
+    const result = card.save();
+    if (result) {
+      return res
+        .status(200)
+        .send({ message: "card added successfully!", card: card });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
   }
 };
 
@@ -241,9 +272,8 @@ exports.orderHistory = async (req, res, next) => {
     }
     return res.json({ orders: orders });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: err });
+
     next(err);
   }
 };
