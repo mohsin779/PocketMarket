@@ -23,7 +23,6 @@ module.exports = async function (passport) {
             name: profile.displayName,
             email: profile.emails[0].value,
             password: null,
-            address: null,
             phoneNumber: null,
           });
           const result = await customer.save();

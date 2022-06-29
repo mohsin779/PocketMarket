@@ -29,4 +29,5 @@ router.delete(
 );
 router.get("/get-addresses", isAuth, customerController.getAddresses);
 router.post("/add-card", isAuth, customerController.addCard);
+router.get("/get-card", isAuth, customerController.getCard);
 module.exports = router;

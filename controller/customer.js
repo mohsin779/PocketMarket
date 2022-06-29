@@ -14,7 +14,7 @@ const CountryData = require("country-state-city").Country.getAllCountries();
 const StateData = require("country-state-city").State;
 const CityData = require("country-state-city").City;
 
-const { Customer } = require("../models/customer");
+const { Customer, CustomerValidations } = require("../models/customer");
 const { Product } = require("../models/product");
 const { Order } = require("../models/order");
 const { OrderedProduct } = require("../models/orderedProduct");
@@ -66,8 +66,14 @@ exports.getCities = async (req, res, next) => {
 exports.updateCustomer = async (req, res, next) => {
   try {
     const customerId = req.params.customerId;
+    const { error } = CustomerValidations.validate(req.body);
+    if (error) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({ error: error.details[0].message });
+    }
 
-    const { name, email, password, address, phone } = req.body;
+    const { name, email, password, phone } = req.body;
     const customer = await Customer.findById(customerId);
     if (!customer) {
       return res.status(404).send("Could not find Customer");
@@ -82,7 +88,6 @@ exports.updateCustomer = async (req, res, next) => {
       const hashedPw = await bcrypt.hash(password, 12);
       customer.password = hashedPw;
     }
-    customer.address = address;
     customer.phoneNumber = phone;
     const result = await customer.save();
     res
@@ -184,6 +189,8 @@ exports.deleteAddress = async (req, res, next) => {
 
 exports.addToOrder = async (req, res, next) => {
   try {
+    const { email } = req.user;
+
     let productName;
     const { ln } = req.params;
     const { paymentMethod, products, addressId } = req.body;
@@ -199,30 +206,26 @@ exports.addToOrder = async (req, res, next) => {
     }, 0);
 
     if (paymentMethod === "card") {
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: productData.map((product, i) => {
-          if (ln == "en") {
-            productName = product.name.nameEn;
-            if (productName == "") {
-              productName = product.name.nameFr;
-            }
-          } else if (ln == "fr") {
-            productName = product.name.nameFr;
-            if (productName == "") {
-              productName = product.name.nameEn;
-            }
-          }
-          return {
-            currency: "pkr",
-            quantity: products[i].quantity,
-            amount: product.sellingPrice * products[i].quantity * 100,
-            name: productName,
-          };
-        }),
-        success_url: req.protocol + "://" + req.get("host"), //http://localhost:8080
-        cancel_url: req.protocol + "://" + req.get("host"), //http://localhost:8080
+      const { cardId } = req.body;
+      const cardDetails = await Card.findById(cardId);
+      const month = cardDetails.expiryDate.split("/")[0];
+      const year = cardDetails.expiryDate.split("/")[1];
+      const token = await stripe.tokens.create({
+        card: {
+          number: cardDetails.cardNumber,
+          exp_month: month,
+          exp_year: year,
+          cvc: cardDetails.securityCode,
+        },
       });
+
+      const session = await stripe.charges.create({
+        card: token.id,
+        amount: totalPrice * 100,
+        currency: "pkr",
+        description: "This is a order from amazon",
+      });
+
       if (session) {
         saveOrder(req, products, totalPrice, addressId, ln);
         return res.json({ id: session.id, total: totalPrice });
@@ -234,9 +237,7 @@ exports.addToOrder = async (req, res, next) => {
       return res.json({ message: "order added!" });
     }
   } catch (err) {
-    res.status(500).send({ error: err });
-
-    next(err);
+    res.status(500).send({ error: err.raw.message });
   }
 };
 
@@ -265,6 +266,20 @@ exports.addCard = async (req, res, next) => {
       return res
         .status(200)
         .send({ message: "card added successfully!", card: card });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+exports.getCard = async (req, res, next) => {
+  try {
+    console.log(req.user._id);
+    const cards = await Card.find({ customerId: req.user._id });
+    // console.log(cards)
+    if (cards) {
+      return res.status(200).send({ cards: cards });
+    } else {
+      return res.state(404).send({ error: "no card found" });
     }
   } catch (err) {
     res.status(500).send({ error: err });
