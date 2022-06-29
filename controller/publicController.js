@@ -38,6 +38,25 @@ exports.getProducts = async (req, res, next) => {
   }
 };
 
+exports.changeNames = async (req, res, next) => {
+  try {
+    const { ln } = req.params;
+    const { products } = req.body;
+    const productData = await Promise.all(
+      products.map(async (prod) => {
+        return await Product.findById({ _id: prod._id });
+      })
+    );
+    const prods = productData.map((p) => {
+      return productsInSelectedLanguage(ln, p);
+    });
+
+    return res.status(200).send({ products: prods });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
 exports.getShop = async (req, res, next) => {
   const shopId = req.params.shopId;
   const shop = await Shop.findById(shopId).select("-password -role");
