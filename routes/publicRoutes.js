@@ -12,6 +12,6 @@ router.get(
 );
 router.get("/shops/get-single-shop/:shopId", publicConrtoller.getShop);
 router.get("/products/:ln/get-product/:productId", publicConrtoller.getProduct);
-router.get("/products/:ln/change-names", publicConrtoller.changeNames);
+router.post("/products/:ln/change-names", publicConrtoller.changeNames);
 
 module.exports = router;
