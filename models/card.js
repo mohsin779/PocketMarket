@@ -21,7 +21,7 @@ const validation = Joi.object({
   lastName: Joi.string().trim(true).required(),
   cardNumber: Joi.number().required(),
   securityCode: Joi.number().required(),
-  expiryDate: Joi.date().format("MM/YYYY").required(),
+  expiryDate: Joi.date().format("MM/YY").required(),
 });
 
 const Card = mongoose.model("Card", cardSchema);
