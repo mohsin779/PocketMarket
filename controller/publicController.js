@@ -23,6 +23,7 @@ exports.getCategories = async (req, res, next) => {
 exports.getProducts = async (req, res, next) => {
   try {
     const { ln, categoryId } = req.params;
+    const category = await Category.findById(categoryId);
 
     const products = await Product.find({ category: categoryId }).populate(
       "category"
@@ -30,7 +31,8 @@ exports.getProducts = async (req, res, next) => {
     const prods = products.map((p) => {
       return productsInSelectedLanguage(ln, p);
     });
-    res.status(200).send({ products: prods });
+
+    res.status(200).send({ category: category.name[ln], products: prods });
   } catch (err) {
     res.status(500).send({ error: err });
   }

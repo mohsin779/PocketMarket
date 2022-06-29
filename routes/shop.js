@@ -7,7 +7,7 @@ const imageUpload = require("../config/multerImage")();
 const fileUpload = require("../config/multerFile")();
 
 router.post(
-  "/add-product/:ln",
+  "/:ln/add-product",
   isAuth,
   imageUpload.single("image"),
   shopController.addProduct
@@ -20,7 +20,7 @@ router.delete(
 );
 
 router.put(
-  ":ln/update-product/:productId",
+  "/:ln/update-product/:productId",
   isAuth,
   imageUpload.single("image"),
   shopController.updateProduct
@@ -28,8 +28,8 @@ router.put(
 
 router.post("/update-shop", isAuth, shopController.updateShop);
 router.get("/myShop", isAuth, shopController.myShop);
-router.get("/get-product/:productId/:ln", isAuth, shopController.getProduct);
-router.get("/myProducts/:ln", isAuth, shopController.myProducts);
+router.get("/:ln/get-product/:productId", isAuth, shopController.getProduct);
+router.get("/:ln/myProducts", isAuth, shopController.myProducts);
 router.get("/orders", isAuth, shopController.orders);
 router.put(
   "/update-order-status/:orderId",
@@ -37,7 +37,7 @@ router.put(
   shopController.updateOrderStatus
 );
 router.post(
-  "/upload-products/:ln",
+  "/:ln/upload-products",
   fileUpload.single("excel"),
   isAuth,
   shopController.uploadProducts
