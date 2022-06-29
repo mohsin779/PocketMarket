@@ -44,7 +44,9 @@ exports.changeNames = async (req, res, next) => {
     const { products } = req.body;
     const productData = await Promise.all(
       products.map(async (prod) => {
-        return await Product.findById({ _id: prod._id });
+        return await Product.findById({ _id: prod._id }).select(
+          "-quantity -retailPrice"
+        );
       })
     );
     const prods = productData.map((p) => {

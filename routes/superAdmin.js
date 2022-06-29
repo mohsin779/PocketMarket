@@ -59,7 +59,7 @@ router.delete(
 );
 
 router.post(
-  "/upload-categories",
+  "/:ln/upload-categories",
   fileUpload.single("excel"),
   isAuth,
   isSuperAdmin,

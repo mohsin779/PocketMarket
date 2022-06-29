@@ -121,36 +121,39 @@ exports.addCategory = async (req, res, next) => {
     const { name } = req.body;
     let en = "",
       fr = "";
-    let imagePath = await cloudinary.uploader.upload(req.file.path);
+
     if (ln == "en") {
       en = name;
     } else if (ln == "fr") {
       fr = name;
     }
-    clearImage(req.file.path);
 
     const categories = await Category.find();
 
     let checkCategory = categories.some(
-      (category) => category.name[ln] == name
+      (category) => category.name[ln].toUpperCase() == name.toUpperCase()
     );
 
-    // console.log(checkCategory);
-
     if (checkCategory) {
+      clearImage(req.file.path);
       return res
         .status(401)
         .send({ error: "A Category with this name already exists" });
     }
+
     if (!req.file) {
       return res
         .status(StatusCodes.BAD_REQUEST)
         .send({ error: "please add an image for this category" });
     }
+    let imagePath = await cloudinary.uploader.upload(req.file.path);
+
     const category = new Category({
       name: { en, fr },
       imageUrl: imagePath.secure_url,
     });
+    clearImage(req.file.path);
+
     const result = await category.save();
 
     res.status(201).json({
@@ -198,18 +201,30 @@ exports.deleteShop = async (req, res, next) => {
 
 exports.uploadCategories = async (req, res, next) => {
   try {
+    const { ln } = req.params;
+    const categories = await Category.find();
+
     var workbook = XLSX.readFile(req.file.path);
     var sheet_namelist = workbook.SheetNames;
     var x = 0;
     sheet_namelist.forEach((element) => {
       var xlData = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_namelist[x]]);
       xlData.forEach(async (data) => {
-        const existingCategory = await Category.findOne({
-          name: { $regex: data.name, $options: "i" },
-        });
+        let en = "",
+          fr = "";
+
+        if (ln == "en") {
+          en = data.name;
+        } else if (ln == "fr") {
+          fr = data.name;
+        }
+        let existingCategory = categories.some(
+          (category) =>
+            category.name[ln].toUpperCase() == data.name.toUpperCase()
+        );
         if (!existingCategory) {
           const category = new Category({
-            name: data.name,
+            name: { en, fr },
             imageUrl: data.imageUrl,
           });
           const result = await category.save();
