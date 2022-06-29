@@ -4,8 +4,17 @@ const { Shop } = require("../models/shop");
 
 exports.getCategories = async (req, res, next) => {
   try {
+    const { ln } = req.params;
     const categories = await Category.find();
-    res.status(200).send({ categories: categories });
+
+    const catgr = categories.map((c) => {
+      return {
+        ...c._doc,
+        name: c.name[ln],
+      };
+    });
+
+    res.status(200).send({ categories: catgr });
   } catch (err) {
     res.status(500).send({ error: err });
   }
