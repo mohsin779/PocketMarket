@@ -97,7 +97,6 @@ exports.updateCustomer = async (req, res, next) => {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
-    next(err);
   }
 };
 exports.myOrders = async (req, res, next) => {
@@ -112,7 +111,6 @@ exports.myOrders = async (req, res, next) => {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
-    next(err);
   }
 };
 exports.orderDetails = async (req, res, next) => {
@@ -123,8 +121,6 @@ exports.orderDetails = async (req, res, next) => {
     return res.json({ orderedProduct: orderedProduct });
   } catch (err) {
     res.status(500).send({ error: err });
-
-    next(err);
   }
 };
 
@@ -138,7 +134,6 @@ exports.getAddresses = async (req, res, next) => {
     return res.json({ addresses: addresses });
   } catch (err) {
     res.status(500).send({ error: err });
-    next(err);
   }
 };
 
@@ -183,7 +178,6 @@ exports.deleteAddress = async (req, res, next) => {
     }
   } catch (err) {
     res.status(500).send({ error: err });
-    next(err);
   }
 };
 
@@ -193,7 +187,7 @@ exports.addToOrder = async (req, res, next) => {
 
     let productName;
     const { ln } = req.params;
-    const { paymentMethod, products, addressId } = req.body;
+    const { paymentMethod, products, addressId, orderId } = req.body;
 
     const productData = await Promise.all(
       products.map(async (prod) => {
@@ -227,13 +221,13 @@ exports.addToOrder = async (req, res, next) => {
       });
 
       if (session) {
-        saveOrder(req, products, totalPrice, addressId, ln);
+        saveOrder(req, orderId, products, totalPrice, addressId, ln);
         return res.json({ id: session.id, total: totalPrice });
       } else {
         return res.status(401).send({ error: "No valid API key provided." });
       }
     } else {
-      saveOrder(req, products, totalPrice, addressId, ln);
+      saveOrder(req, orderId, products, totalPrice, addressId, ln);
       return res.json({ message: "order added!" });
     }
   } catch (err) {
@@ -301,16 +295,15 @@ exports.orderHistory = async (req, res, next) => {
     return res.json({ orders: orders });
   } catch (err) {
     res.status(500).send({ error: err });
-
-    next(err);
   }
 };
 
-const saveOrder = async (req, products, totalPrice, addressId, ln) => {
+const saveOrder = async (req, orderId, products, totalPrice, addressId, ln) => {
   const order = new Order({
     customerId: req.user._id,
     addressId: addressId,
     status: "pending",
+    orderId: orderId,
     totalPrice: totalPrice,
   });
   await order.save();

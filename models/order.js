@@ -14,6 +14,7 @@ const orderSchema = new Schema({
     ref: "Address",
     require: true,
   },
+  orderId: String,
   status: {
     type: String,
   },
@@ -23,7 +24,8 @@ const orderSchema = new Schema({
 });
 
 const validation = Joi.object({
-  Status: Joi.string().default("Pending"),
+  orderId: Joi.string().required(),
+  status: Joi.string().default("Pending"),
   totalPrice: Joi.number().positive().greater(1).precision(2).required(),
 });
 const Order = mongoose.model("Order", orderSchema);
