@@ -81,10 +81,7 @@ exports.getShop = async (req, res, next) => {
     }
     res.status(200).json({ message: "Shop fetched.", shop: shop });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
+    res.status(500).send({ error: err });
   }
 };
 
@@ -102,10 +99,52 @@ exports.getProduct = async (req, res, next) => {
       .status(200)
       .json({ message: "Product fetched.", product: fetchedProduct });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.search = async (req, res, next) => {
+  try {
+    const { ln } = req.params;
+    const { productName } = req.body;
+    let results;
+    if (ln === "en") {
+      results = await Product.find(
+        {
+          "name.nameEn": { $regex: ".*" + productName + ".*", $options: "i" },
+        },
+        { name: 1 }
+      );
+    } else if (ln === "fr") {
+      results = await Product.find(
+        {
+          "name.nameFr": { $regex: ".*" + productName + ".*", $options: "i" },
+        },
+        { name: 1 }
+      );
+    } else {
+      return res.status(400).send({ error: "invalid language!" });
     }
-    next(err);
+
+    const newResults = results.map((item) => {
+      if (ln === "en") {
+        return {
+          _id: item._id,
+          name: item.name.get("nameEn"),
+        };
+      } else if (ln === "fr") {
+        return {
+          _id: item._id,
+          name: item.name.get("nameFr"),
+        };
+      } else {
+        return res.status(400).send({ error: "invalid language!" });
+      }
+    });
+
+    return res.status(200).send({ products: newResults });
+  } catch (err) {
+    res.status(500).send({ error: err });
   }
 };
 const productsInSelectedLanguage = (ln, product) => {

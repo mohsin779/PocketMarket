@@ -308,7 +308,7 @@ exports.orderHistory = async (req, res, next) => {
     if (totalItems == 0) {
       return res
         .status(404)
-        .send({ error: "you did not have any order history yet." });
+        .send({ orders: [], error: "you did not have any order history yet." });
     }
     const orders = await Order.find({
       customerId: customerId,

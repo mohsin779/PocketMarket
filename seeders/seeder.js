@@ -22,7 +22,7 @@ const seeder = async () => {
 
   const category_images = [
     "https://res.cloudinary.com/dyppzmrda/image/upload/v1655794565/ticcwruqw97891jznlt6.jpg",
-    "uploads/image_0000000000001.jpg",
+    "https://res.cloudinary.com/dyppzmrda/image/upload/v1656583062/image_0000000000001_idtcr5.webp",
   ];
 
   roles.map(async (item, index) => {
