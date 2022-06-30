@@ -31,8 +31,6 @@ exports.myShop = async (req, res, next) => {
     res.status(200).json({ shop: shop });
   } catch (err) {
     res.status(500).send({ error: err });
-
-    next(err);
   }
 };
 
@@ -40,20 +38,31 @@ exports.myProducts = async (req, res, next) => {
   try {
     const { ln } = req.params;
     const shopId = req.user._id;
-    const products = await Product.find({ creator: shopId }).populate(
-      "category"
-    );
-    if (!products) {
+
+    const currentPage = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.limit) || 10;
+
+    let totalItems = await Product.find({
+      creator: shopId,
+    }).countDocuments();
+
+    if (totalItems == 0) {
       return res.json({ error: "You dont have any product" });
     }
+    const products = await Product.find({ creator: shopId })
+      .populate("category")
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+
     const prods = products.map((p) => {
       return productsInSelectedLanguage(ln, p);
     });
-    return res.json({ products: prods });
+    return res.json({
+      products: prods,
+      totalpages: Math.ceil(totalItems / perPage),
+    });
   } catch (err) {
     res.status(500).send({ error: err });
-
-    next(err);
   }
 };
 
@@ -75,8 +84,6 @@ exports.getProduct = async (req, res, next) => {
       .json({ message: "Product fetched.", product: fetchedProduct });
   } catch (err) {
     res.status(500).send({ error: err });
-
-    next(err);
   }
 };
 
@@ -103,8 +110,6 @@ exports.updateShop = async (req, res, next) => {
       .json({ message: "Request sent Successfully to SuperAdmin" });
   } catch (err) {
     res.status(500).send({ error: err });
-
-    next(err);
   }
 };
 
@@ -250,10 +255,7 @@ exports.deleteProduct = async (req, res, next) => {
 
     res.status(200).json({ message: "Deleted product." });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
+    res.status(500).send({ error: err });
   }
 };
 
@@ -311,17 +313,29 @@ exports.uploadProducts = async (req, res, next) => {
 
 exports.orders = async (req, res, next) => {
   try {
+    const currentPage = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.limit) || 10;
+
     const shopId = req.user._id;
-    const order = await OrderedProduct.find({ shopId: shopId });
-    if (!order) {
+
+    let totalItems = await OrderedProduct.find({
+      shopId: shopId,
+    }).countDocuments();
+
+    if (totalItems == 0) {
       return res.json({ error: "You dont have any order" });
     }
-    return res.json({ order: order });
+
+    const order = await OrderedProduct.find({ shopId: shopId })
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+
+    return res.json({
+      order: order,
+      totalpages: Math.ceil(totalItems / perPage),
+    });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
+    res.status(500).send({ error: err });
   }
 };
 
@@ -341,9 +355,7 @@ exports.updateOrderStatus = async (req, res, next) => {
     await order.save();
     return res.json({ message: "Staus updated successfully!" });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: err });
   }
 };
 

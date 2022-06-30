@@ -23,16 +23,29 @@ exports.getCategories = async (req, res, next) => {
 exports.getProducts = async (req, res, next) => {
   try {
     const { ln, categoryId } = req.params;
-    const category = await Category.findById(categoryId);
+    const currentPage = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.limit) || 10;
 
-    const products = await Product.find({ category: categoryId }).populate(
-      "category"
-    );
+    const category = await Category.findById(categoryId);
+    let totalItems = await Product.find({
+      category: categoryId,
+    }).countDocuments();
+
+    const products = await Product.find({ category: categoryId })
+      .select("-retailPrice")
+      .populate("category")
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+
     const prods = products.map((p) => {
       return productsInSelectedLanguage(ln, p);
     });
 
-    res.status(200).send({ category: category.name[ln], products: prods });
+    res.status(200).send({
+      category: category.name[ln],
+      products: prods,
+      totalpages: Math.ceil(totalItems / perPage),
+    });
   } catch (err) {
     res.status(500).send({ error: err });
   }

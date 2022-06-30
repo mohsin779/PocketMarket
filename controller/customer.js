@@ -101,12 +101,25 @@ exports.updateCustomer = async (req, res, next) => {
 };
 exports.myOrders = async (req, res, next) => {
   try {
+    const currentPage = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.limit) || 10;
+
     const customerId = req.user._id;
-    const orders = await Order.find({ customerId: customerId });
-    if (!orders) {
+
+    let totalItems = await Order.find({
+      customerId: customerId,
+    }).countDocuments();
+    if (totalItems == 0) {
       return res.json({ error: "You did not placed any order" });
     }
-    return res.json({ orders: orders });
+    const orders = await Order.find({ customerId: customerId })
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+
+    return res.json({
+      orders: orders,
+      totalpages: Math.ceil(totalItems / perPage),
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -282,17 +295,32 @@ exports.getCard = async (req, res, next) => {
 
 exports.orderHistory = async (req, res, next) => {
   try {
+    const currentPage = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.limit) || 10;
+
     const customerId = req.user._id;
-    const orders = await Order.find({
+
+    let totalItems = await Order.find({
       customerId: customerId,
       status: "delivered",
-    });
-    if (!orders) {
+    }).countDocuments();
+
+    if (totalItems == 0) {
       return res
         .status(404)
         .send({ error: "you did not have any order history yet." });
     }
-    return res.json({ orders: orders });
+    const orders = await Order.find({
+      customerId: customerId,
+      status: "delivered",
+    })
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+
+    return res.json({
+      orders: orders,
+      totalpages: Math.ceil(totalItems / perPage),
+    });
   } catch (err) {
     res.status(500).send({ error: err });
   }
