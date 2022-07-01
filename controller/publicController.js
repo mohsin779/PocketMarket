@@ -39,8 +39,13 @@ exports.getProducts = async (req, res, next) => {
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
-    const prods = products.map((p) => {
-      return productsInSelectedLanguage(ln, p);
+    const prods = products.map((product) => {
+      return {
+        ...product._doc,
+        name: product.name.get(ln),
+        description: product.description.get(ln),
+        features: product.features.get(ln),
+      };
     });
 
     res.status(200).send({
@@ -95,7 +100,12 @@ exports.getProduct = async (req, res, next) => {
     if (!product) {
       return res.status(404).send({ error: "Could not find Product." });
     }
-    let fetchedProduct = productsInSelectedLanguage(ln, product);
+    let fetchedProduct = {
+      ...product._doc,
+      name: product.name.get(ln),
+      description: product.description.get(ln),
+      features: product.features.get(ln),
+    };
 
     res
       .status(200)
