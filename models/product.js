@@ -13,9 +13,15 @@ const productSchema = new Schema({
   imageUrl: String,
   sellingPrice: Number,
   retailPrice: Number,
-  description: Object,
+  description: {
+    type: Map,
+    of: String,
+  },
   brandName: String,
-  features: Object,
+  features: {
+    type: Map,
+    of: String,
+  },
   creator: {
     type: Schema.Types.ObjectId,
     ref: "Shop",

@@ -11,6 +11,7 @@ const { UpdateRequest } = require("../models/updateRequests");
 const { OrderedProduct } = require("../models/orderedProduct");
 const { Product } = require("../models/product");
 const { Order } = require("../models/order");
+const { Language } = require("../models/language");
 
 exports.getRoles = async (req, res, next) => {
   try {
@@ -261,6 +262,21 @@ exports.downloadCategoriesList = async (req, res, next) => {
     res.status(500).send({ error: err });
   }
 };
+
+exports.addLanguage = async (req, res, next) => {
+  try {
+    const { name, code } = req.body;
+    const lan = new Language({
+      name: name,
+      code: code,
+    });
+    await lan.save();
+    return res.status(200).send({ message: "language added." });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));

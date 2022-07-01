@@ -2,6 +2,7 @@ const { Category } = require("../models/category");
 const { Product } = require("../models/product");
 const { Rating } = require("../models/rating");
 const { Shop } = require("../models/shop");
+const { Language } = require("../models/language");
 
 exports.getCategories = async (req, res, next) => {
   try {
@@ -108,39 +109,21 @@ exports.search = async (req, res, next) => {
   try {
     const { ln } = req.params;
     const { productName } = req.body;
-    let results;
-    if (ln === "en") {
-      results = await Product.find(
-        {
-          "name.nameEn": { $regex: ".*" + productName + ".*", $options: "i" },
-        },
-        { name: 1 }
-      );
-    } else if (ln === "fr") {
-      results = await Product.find(
-        {
-          "name.nameFr": { $regex: ".*" + productName + ".*", $options: "i" },
-        },
-        { name: 1 }
-      );
-    } else {
-      return res.status(400).send({ error: "invalid language!" });
-    }
+
+    const name = `name.${ln}`;
+
+    let results = await Product.find(
+      {
+        [name]: { $regex: ".*" + productName + ".*", $options: "i" },
+      },
+      { name: 1 }
+    );
 
     const newResults = results.map((item) => {
-      if (ln === "en") {
-        return {
-          _id: item._id,
-          name: item.name.get("nameEn"),
-        };
-      } else if (ln === "fr") {
-        return {
-          _id: item._id,
-          name: item.name.get("nameFr"),
-        };
-      } else {
-        return res.status(400).send({ error: "invalid language!" });
-      }
+      return {
+        _id: item._id,
+        name: item.name.get(ln),
+      };
     });
 
     return res.status(200).send({ products: newResults });
@@ -158,6 +141,15 @@ exports.getRatings = async (req, res, next) => {
     } else {
       return res.status(404).send({ error: "No ratings found!" });
     }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.getLanguages = async (req, res, next) => {
+  try {
+    const languages = await Language.find();
+    return res.status(200).send({ languages: languages });
   } catch (err) {
     res.status(500).send({ error: err });
   }

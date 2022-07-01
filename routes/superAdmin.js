@@ -73,4 +73,11 @@ router.get(
   superAdminController.downloadCategoriesList
 );
 
+router.post(
+  "/add-language",
+  isAuth,
+  isSuperAdmin,
+  superAdminController.addLanguage
+);
+
 module.exports = router;
