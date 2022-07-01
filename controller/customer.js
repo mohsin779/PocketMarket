@@ -20,6 +20,7 @@ const { Order } = require("../models/order");
 const { OrderedProduct } = require("../models/orderedProduct");
 const { Address } = require("../models/address");
 const { Card, CardValidations } = require("../models/card");
+const { Rating } = require("../models/rating");
 
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -338,9 +339,9 @@ const saveOrder = async (req, orderId, products, totalPrice, addressId, ln) => {
   if (ln == "en") {
     products.forEach(async (prod) => {
       const product = await Product.findById({ _id: prod._id });
-      let productName = product.name.nameEn;
+      let productName = product.name.get("nameEn");
       if (productName == "") {
-        productName = product.name.nameFr;
+        productName = product.name.get("nameFr");
       }
       const orderedProduct = new OrderedProduct({
         orderId: order._id,
@@ -355,9 +356,9 @@ const saveOrder = async (req, orderId, products, totalPrice, addressId, ln) => {
   } else if (ln == "fr") {
     products.forEach(async (prod) => {
       const product = await Product.findById({ _id: prod._id });
-      let productName = product.name.nameFr;
+      let productName = product.name.get("nameFr");
       if (productName == "") {
-        productName = product.name.nameEn;
+        productName = product.name.get("nameEn");
       }
       const orderedProduct = new OrderedProduct({
         orderId: order._id,
@@ -433,6 +434,24 @@ exports.resetPassword = async (req, res, next) => {
     customer.password = hashedPw;
     await customer.save();
     res.status(200).send({ message: "Your password updated successfuly." });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.addRating = async (req, res, next) => {
+  try {
+    const { productId, rating } = req.body;
+    const newRating = new Rating({
+      customer: req.user._id,
+      product: productId,
+      rating: rating,
+    });
+
+    const result = await newRating.save();
+    if (result) {
+      return res.status(200).send({ message: "Thanks for your feedback!" });
+    }
   } catch (err) {
     res.status(500).send({ error: err });
   }

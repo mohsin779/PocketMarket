@@ -430,12 +430,12 @@ const productsInSelectedLanguage = (ln, product) => {
   if (ln == "en") {
     fetchedProduct = {
       ...product._doc,
-      name: product.name.nameEn,
+      name: product.name.get("nameEn"),
       description: product.description.descriptionEn,
       features: product.features.featuresEn,
     };
     if (fetchedProduct.name == "") {
-      fetchedProduct = { ...fetchedProduct, name: product.name.nameFr };
+      fetchedProduct = { ...fetchedProduct, name: product.name.get("nameFr") };
     }
     if (fetchedProduct.description == "") {
       fetchedProduct = {
@@ -452,12 +452,12 @@ const productsInSelectedLanguage = (ln, product) => {
   } else if (ln == "fr") {
     fetchedProduct = {
       ...product._doc,
-      name: product.name.nameFr,
+      name: product.name.get("nameFr"),
       description: product.description.descriptionFr,
       features: product.features.featuresFr,
     };
     if (fetchedProduct.name == "") {
-      fetchedProduct = { ...fetchedProduct, name: product.name.nameEn };
+      fetchedProduct = { ...fetchedProduct, name: product.name.get("nameEn") };
     }
     if (fetchedProduct.description == "") {
       fetchedProduct = {

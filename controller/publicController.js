@@ -1,5 +1,6 @@
 const { Category } = require("../models/category");
 const { Product } = require("../models/product");
+const { Rating } = require("../models/rating");
 const { Shop } = require("../models/shop");
 
 exports.getCategories = async (req, res, next) => {
@@ -147,17 +148,32 @@ exports.search = async (req, res, next) => {
     res.status(500).send({ error: err });
   }
 };
+
+exports.getRatings = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    const ratings = await Rating.find({ product: productId });
+    if (ratings.length > 0) {
+      return res.status(200).send({ ratings: ratings });
+    } else {
+      return res.status(404).send({ error: "No ratings found!" });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
 const productsInSelectedLanguage = (ln, product) => {
   let fetchedProduct;
   if (ln == "en") {
     fetchedProduct = {
       ...product._doc,
-      name: product.name.nameEn,
+      name: product.name.get("nameEn"),
       description: product.description.descriptionEn,
       features: product.features.featuresEn,
     };
     if (fetchedProduct.name == "") {
-      fetchedProduct = { ...fetchedProduct, name: product.name.nameFr };
+      fetchedProduct = { ...fetchedProduct, name: product.name.get("nameFr") };
     }
     if (fetchedProduct.description == "") {
       fetchedProduct = {
@@ -174,12 +190,12 @@ const productsInSelectedLanguage = (ln, product) => {
   } else if (ln == "fr") {
     fetchedProduct = {
       ...product._doc,
-      name: product.name.nameFr,
+      name: product.name.get("nameFr"),
       description: product.description.descriptionFr,
       features: product.features.featuresFr,
     };
     if (fetchedProduct.name == "") {
-      fetchedProduct = { ...fetchedProduct, name: product.name.nameEn };
+      fetchedProduct = { ...fetchedProduct, name: product.name.get("nameEn") };
     }
     if (fetchedProduct.description == "") {
       fetchedProduct = {
