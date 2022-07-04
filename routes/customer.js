@@ -13,7 +13,7 @@ router.post("/:ln/add-to-order", isAuth, customerController.addToOrder);
 router.get("/my-orders", isAuth, customerController.myOrders);
 router.get("/order-detail/:orderId", isAuth, customerController.orderDetails);
 router.get("/orders-history", isAuth, customerController.orderHistory);
-router.get("/send-code", customerController.sendEmailAndMessage);
+router.post("/send-code", customerController.sendEmailAndMessage);
 router.put("/reset-password", customerController.resetPassword);
 router.get("/countries-list", customerController.getCountries);
 router.get("/states-list/:countryCode", customerController.getStates);
