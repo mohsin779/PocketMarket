@@ -120,19 +120,11 @@ exports.addCategory = async (req, res, next) => {
   try {
     const { ln } = req.params;
     const { name } = req.body;
-    let en = "",
-      fr = "";
-
-    if (ln == "en") {
-      en = name;
-    } else if (ln == "fr") {
-      fr = name;
-    }
 
     const categories = await Category.find();
 
     let checkCategory = categories.some(
-      (category) => category.name[ln].toUpperCase() == name.toUpperCase()
+      (category) => category.name.get(ln).toUpperCase() == name.toUpperCase()
     );
 
     if (checkCategory) {
@@ -149,8 +141,16 @@ exports.addCategory = async (req, res, next) => {
     }
     let imagePath = await cloudinary.uploader.upload(req.file.path);
 
+    const dblanguages = await Language.find();
+
+    let languages = dblanguages.map((language) => {
+      return language.code;
+    });
+
+    languages = languages.reduce((acc, curr) => ((acc[curr] = ""), acc), {});
+
     const category = new Category({
-      name: { en, fr },
+      name: { ...languages, [ln]: name },
       imageUrl: imagePath.secure_url,
     });
     clearImage(req.file.path);
@@ -161,6 +161,51 @@ exports.addCategory = async (req, res, next) => {
       message: "Category created!",
       category: result,
     });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.updateCategory = async (req, res, next) => {
+  try {
+    const { categoryId, ln } = req.params;
+    const { name } = req.body;
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).send({ error: "Could not find Category" });
+    }
+
+    const categories = await Category.find();
+
+    let checkCategory = categories.some(
+      (category) => category.name.get(ln).toUpperCase() == name.toUpperCase()
+    );
+
+    if (checkCategory) {
+      clearImage(req.file.path);
+      return res
+        .status(401)
+        .send({ error: "A Category with this name already exists" });
+    }
+    let imageUrl;
+    if (req.file) {
+      let imagePath = await cloudinary.uploader.upload(req.file.path);
+      imageUrl = imagePath.secure_url;
+      clearImage(req.file.path);
+    }
+    if (imageUrl && imageUrl !== category.imageUrl) {
+      var filename = category.imageUrl.split("/").pop();
+      filename = filename.split(".")[0];
+      cloudinary.uploader.destroy(filename);
+    }
+    category.name.set(ln, name);
+    if (imageUrl) {
+      category.imageUrl = imageUrl;
+    }
+    const result = await category.save();
+    if (result) {
+      res.status(200).json({ message: "Category updated!", category: result });
+    }
   } catch (err) {
     res.status(500).send({ error: err });
   }
@@ -208,24 +253,27 @@ exports.uploadCategories = async (req, res, next) => {
     var workbook = XLSX.readFile(req.file.path);
     var sheet_namelist = workbook.SheetNames;
     var x = 0;
+
+    // start getting languages from data base
+    const dblanguages = await Language.find();
+
+    let languages = dblanguages.map((language) => {
+      return language.code;
+    });
+
+    languages = languages.reduce((acc, curr) => ((acc[curr] = ""), acc), {});
+    // end getting languages.
+
     sheet_namelist.forEach((element) => {
       var xlData = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_namelist[x]]);
       xlData.forEach(async (data) => {
-        let en = "",
-          fr = "";
-
-        if (ln == "en") {
-          en = data.name;
-        } else if (ln == "fr") {
-          fr = data.name;
-        }
         let existingCategory = categories.some(
           (category) =>
-            category.name[ln].toUpperCase() == data.name.toUpperCase()
+            category.name.get(ln).toUpperCase() == data.name.toUpperCase()
         );
         if (!existingCategory) {
           const category = new Category({
-            name: { en, fr },
+            name: { ...languages, [ln]: data.name },
             imageUrl: data.imageUrl,
           });
           const result = await category.save();

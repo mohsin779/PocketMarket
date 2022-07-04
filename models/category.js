@@ -4,7 +4,10 @@ const Joi = require("joi");
 const Schema = mongoose.Schema;
 
 const categorySchema = new Schema({
-  name: Object,
+  name: {
+    type: Map,
+    of: String,
+  },
   imageUrl: String,
 });
 

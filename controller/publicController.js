@@ -9,10 +9,14 @@ exports.getCategories = async (req, res, next) => {
     const { ln } = req.params;
     const categories = await Category.find();
 
-    const catgr = categories.map((c) => {
+    const catgr = categories.map((category) => {
+      let ctegoryName = category.name.get(ln);
+      if (ctegoryName == "") {
+        ctegoryName = category.name.get("en");
+      }
       return {
-        ...c._doc,
-        name: c.name[ln],
+        ...category._doc,
+        name: ctegoryName,
       };
     });
 
@@ -40,16 +44,29 @@ exports.getProducts = async (req, res, next) => {
       .limit(perPage);
 
     const prods = products.map((product) => {
+      let productName = product.name.get(ln);
+      let productDescription = product.description.get(ln);
+      let productFeatures = product.features.get(ln);
+
+      if (productName == "") {
+        productName = product.name.get("en");
+      }
+      if (productDescription == "") {
+        productDescription = product.description.get("en");
+      }
+      if (productFeatures == "") {
+        productFeatures = product.features.get("en");
+      }
       return {
         ...product._doc,
-        name: product.name.get(ln),
-        description: product.description.get(ln),
-        features: product.features.get(ln),
+        name: productName,
+        description: productFeatures,
+        features: productFeatures,
       };
     });
 
     res.status(200).send({
-      category: category.name[ln],
+      category: category.name.get(ln),
       products: prods,
       totalpages: Math.ceil(totalItems / perPage),
     });
@@ -69,8 +86,26 @@ exports.changeNames = async (req, res, next) => {
         );
       })
     );
-    const prods = productData.map((p) => {
-      return productsInSelectedLanguage(ln, p);
+    const prods = productData.map((product) => {
+      let productName = product.name.get(ln);
+      let productDescription = product.description.get(ln);
+      let productFeatures = product.features.get(ln);
+
+      if (productName == "") {
+        productName = product.name.get("en");
+      }
+      if (productDescription == "") {
+        productDescription = product.description.get("en");
+      }
+      if (productFeatures == "") {
+        productFeatures = product.features.get("en");
+      }
+      return {
+        ...product._doc,
+        name: productName,
+        description: productFeatures,
+        features: productFeatures,
+      };
     });
 
     return res.status(200).send({ products: prods });
@@ -100,11 +135,24 @@ exports.getProduct = async (req, res, next) => {
     if (!product) {
       return res.status(404).send({ error: "Could not find Product." });
     }
+    let productName = product.name.get(ln);
+    let productDescription = product.description.get(ln);
+    let productFeatures = product.features.get(ln);
+
+    if (productName == "") {
+      productName = product.name.get("en");
+    }
+    if (productDescription == "") {
+      productDescription = product.description.get("en");
+    }
+    if (productFeatures == "") {
+      productFeatures = product.features.get("en");
+    }
     let fetchedProduct = {
       ...product._doc,
-      name: product.name.get(ln),
-      description: product.description.get(ln),
-      features: product.features.get(ln),
+      name: productName,
+      description: productFeatures,
+      features: productFeatures,
     };
 
     res
@@ -163,54 +211,4 @@ exports.getLanguages = async (req, res, next) => {
   } catch (err) {
     res.status(500).send({ error: err });
   }
-};
-
-const productsInSelectedLanguage = (ln, product) => {
-  let fetchedProduct;
-  if (ln == "en") {
-    fetchedProduct = {
-      ...product._doc,
-      name: product.name.get("nameEn"),
-      description: product.description.descriptionEn,
-      features: product.features.featuresEn,
-    };
-    if (fetchedProduct.name == "") {
-      fetchedProduct = { ...fetchedProduct, name: product.name.get("nameFr") };
-    }
-    if (fetchedProduct.description == "") {
-      fetchedProduct = {
-        ...fetchedProduct,
-        description: product.description.descriptionFr,
-      };
-    }
-    if (fetchedProduct.features == "") {
-      fetchedProduct = {
-        ...fetchedProduct,
-        features: product.features.featuresFr,
-      };
-    }
-  } else if (ln == "fr") {
-    fetchedProduct = {
-      ...product._doc,
-      name: product.name.get("nameFr"),
-      description: product.description.descriptionFr,
-      features: product.features.featuresFr,
-    };
-    if (fetchedProduct.name == "") {
-      fetchedProduct = { ...fetchedProduct, name: product.name.get("nameEn") };
-    }
-    if (fetchedProduct.description == "") {
-      fetchedProduct = {
-        ...fetchedProduct,
-        description: product.description.descriptionEn,
-      };
-    }
-    if (fetchedProduct.features == "") {
-      fetchedProduct = {
-        ...fetchedProduct,
-        features: product.features.featuresEn,
-      };
-    }
-  }
-  return fetchedProduct;
 };

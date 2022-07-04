@@ -80,4 +80,12 @@ router.post(
   superAdminController.addLanguage
 );
 
+router.put(
+  "/:ln/update-category/:categoryId",
+  fileUpload.single("excel"),
+  isAuth,
+  isSuperAdmin,
+  superAdminController.updateCategory
+);
+
 module.exports = router;

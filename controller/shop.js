@@ -55,11 +55,24 @@ exports.myProducts = async (req, res, next) => {
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
     const prods = products.map((product) => {
+      let productName = product.name.get(ln);
+      let productDescription = product.description.get(ln);
+      let productFeatures = product.features.get(ln);
+
+      if (productName == "") {
+        productName = product.name.get("en");
+      }
+      if (productDescription == "") {
+        productDescription = product.description.get("en");
+      }
+      if (productFeatures == "") {
+        productFeatures = product.features.get("en");
+      }
       return {
         ...product._doc,
-        name: product.name.get(ln),
-        description: product.description.get(ln),
-        features: product.features.get(ln),
+        name: productName,
+        description: productFeatures,
+        features: productFeatures,
       };
     });
     return res.json({
@@ -82,11 +95,24 @@ exports.getProduct = async (req, res, next) => {
     if (!product) {
       return res.status(404).send({ error: "Could not find Product." });
     }
+    let productName = product.name.get(ln);
+    let productDescription = product.description.get(ln);
+    let productFeatures = product.features.get(ln);
+
+    if (productName == "") {
+      productName = product.name.get("en");
+    }
+    if (productDescription == "") {
+      productDescription = product.description.get("en");
+    }
+    if (productFeatures == "") {
+      productFeatures = product.features.get("en");
+    }
     let fetchedProduct = {
       ...product._doc,
-      name: product.name.get(ln),
-      description: product.description.get(ln),
-      features: product.features.get(ln),
+      name: productName,
+      description: productFeatures,
+      features: productFeatures,
     };
 
     res
