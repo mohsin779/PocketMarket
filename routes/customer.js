@@ -4,11 +4,7 @@ const router = express.Router();
 const isAuth = require("../middleware/is-auth");
 const customerController = require("../controller/customer");
 
-router.put(
-  "/update-customer/:customerId",
-  isAuth,
-  customerController.updateCustomer
-);
+router.put("/update-customer", isAuth, customerController.updateCustomer);
 router.post("/:ln/add-to-order", isAuth, customerController.addToOrder);
 router.get("/my-orders", isAuth, customerController.myOrders);
 router.get("/order-detail/:orderId", isAuth, customerController.orderDetails);
