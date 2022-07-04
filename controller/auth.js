@@ -132,6 +132,7 @@ exports.customerLogin = async (req, res, next) => {
     const sendCustomer = {
       name: customer.name,
       email: customer.email,
+      phoneNumber: customer.phoneNumber,
       _id: customer._id,
     };
 
