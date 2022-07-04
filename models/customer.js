@@ -25,7 +25,7 @@ customerSchema.methods.genAuthToken = function () {
 };
 
 const validation = Joi.object({
-  name: Joi.string().alphanum().min(3).max(25).trim(true).required(),
+  name: Joi.string().min(3).max(25).trim(true).required(),
   email: Joi.string().email().trim(true).required(),
   password: Joi.string().min(8).trim(true),
   phoneNumber: Joi.string().required(),

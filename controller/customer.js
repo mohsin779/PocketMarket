@@ -66,7 +66,7 @@ exports.getCities = async (req, res, next) => {
 
 exports.updateCustomer = async (req, res, next) => {
   try {
-    const customerId = req.params.customerId;
+    const customerId = req.user._id;
     const { error } = CustomerValidations.validate(req.body);
     if (error) {
       return res
@@ -74,26 +74,29 @@ exports.updateCustomer = async (req, res, next) => {
         .send({ error: error.details[0].message });
     }
 
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phoneNumber } = req.body;
     const customer = await Customer.findById(customerId);
     if (!customer) {
       return res.status(404).send("Could not find Customer");
     }
 
-    if (customer._id.toString() !== req.user._id.toString()) {
-      return res.status(403).send({ error: "Not authorized!" });
-    }
-    customer.name = name;
-    customer.email = email;
+    let hashedPw;
+
+    let obj = { name, email, phoneNumber };
+
     if (password) {
-      const hashedPw = await bcrypt.hash(password, 12);
-      customer.password = hashedPw;
+      hashedPw = await bcrypt.hash(password, 12);
+      obj = { ...obj, password: hashedPw };
     }
-    customer.phoneNumber = phone;
-    const result = await customer.save();
+
+    const updatedUser = await Customer.findByIdAndUpdate(
+      customerId,
+      obj
+    ).select("-password -__v");
+
     res
       .status(200)
-      .json({ message: "Customer details updated!", customer: result });
+      .json({ message: "Customer details updated!", customer: updatedUser });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
