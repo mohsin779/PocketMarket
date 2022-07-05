@@ -9,16 +9,19 @@ router.post("/admin/login", authController.adminLogin);
 router.post("/customer/signup", authController.customerSignup);
 router.post("/customer/login", authController.customerLogin);
 
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
+// router.get(
+//   "/google",
+//   passport.authenticate("google", { scope: ["profile", "email"] })
+// );
 
-router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "auth/customer/login",
-  }),
-  authController.googleLogin
-);
+// router.get(
+//   "/google/callback",
+//   passport.authenticate("google", {
+//     failureRedirect: "auth/customer/login",
+//   }),
+//   authController.googleLogin
+// );
+
+router.post("/social-login", authController.socialLogin);
+
 module.exports = router;

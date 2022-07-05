@@ -68,6 +68,9 @@ exports.updateCustomer = async (req, res, next) => {
   try {
     const customerId = req.user._id;
     const { error } = CustomerValidations.validate(req.body);
+
+    const io = req.app.get("socketio");
+
     if (error) {
       return res
         .status(StatusCodes.BAD_REQUEST)

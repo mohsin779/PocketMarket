@@ -1,9 +1,6 @@
 const { OAuth2Client } = require("google-auth-library");
 require("dotenv").config();
-const client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET
-);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -150,39 +147,68 @@ exports.customerLogin = async (req, res, next) => {
   }
 };
 
-exports.googleLogin = async (req, res, next) => {
-  try {
-    const token = req.user.genAuthToken();
-    const customer = {
-      name: req.user.name,
-      email: req.user.email,
-      _id: req.user._id,
-    };
-    res.status(200).send({
-      customer: customer,
-      token: token,
-    });
-  } catch (err) {
-    res.status(500).send({ error: error });
-    next(err);
-  }
-};
+// exports.googleLogin = async (req, res, next) => {
+//   try {
+//     const token = req.user.genAuthToken();
+//     const customer = {
+//       name: req.user.name,
+//       email: req.user.email,
+//       _id: req.user._id,
+//     };
+//     res.status(200).json({
+//       customer: customer,
+//       token: token,
+//     });
+//   } catch (err) {
+//     if (!err.statusCode) {
+//       err.statusCode = 500;
+//     }
+//     next(err);
+//   }
+// };
 
 exports.socialLogin = async (req, res) => {
-  // console.log(client);
   try {
-    const { provider, accessToken } = req.body;
-    const authorizeUrl = client.generateAuthUrl({
-      access_type: "offline",
-      scope: "https://www.googleapis.com/auth/userinfo.profile",
+    const { tokenId } = req.body;
+    const { payload } = await client.verifyIdToken({
+      idToken: tokenId,
+      requiredAudience: process.env.GOOGLE_CLIENT_ID,
     });
-    console.log("bfore");
-    const ticket = await client.getAccessToken();
-    console.log("after");
 
-    const payload = ticket.getPayload();
+    const { email, email_verified, name } = payload;
+    let token;
+    if (email_verified) {
+      const existingCustomer = await Customer.findOne({ email: email });
 
-    res.send({ payload });
+      if (!existingCustomer) {
+        const customer = new Customer({
+          name: name,
+          email: email,
+          password: null,
+          phoneNumber: null,
+        });
+        const result = await customer.save();
+        token = result.genAuthToken();
+        const newCustomer = {
+          _id: result._id,
+          name: result.name,
+          email: result.email,
+          phoneNumber: result.phoneNumber,
+        };
+        res.status(200).send({ customer: newCustomer, token: token });
+      } else {
+        const customer = {
+          _id: existingCustomer._id,
+          name: existingCustomer.name,
+          email: existingCustomer.email,
+          phoneNumber: existingCustomer.phoneNumber,
+        };
+        const token = existingCustomer.genAuthToken();
+        res.status(200).send({ customer: customer, token: token });
+      }
+    } else {
+      res.status(401).send({ error: "Your email is not verified" });
+    }
   } catch (error) {
     res.status(500).send({ error: error });
   }
