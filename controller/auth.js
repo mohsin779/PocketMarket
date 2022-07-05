@@ -1,4 +1,9 @@
+const { OAuth2Client } = require("google-auth-library");
 require("dotenv").config();
+const client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET
+);
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -153,14 +158,32 @@ exports.googleLogin = async (req, res, next) => {
       email: req.user.email,
       _id: req.user._id,
     };
-    res.status(200).json({
+    res.status(200).send({
       customer: customer,
       token: token,
     });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    res.status(500).send({ error: error });
     next(err);
+  }
+};
+
+exports.socialLogin = async (req, res) => {
+  // console.log(client);
+  try {
+    const { provider, accessToken } = req.body;
+    const authorizeUrl = client.generateAuthUrl({
+      access_type: "offline",
+      scope: "https://www.googleapis.com/auth/userinfo.profile",
+    });
+    console.log("bfore");
+    const ticket = await client.getAccessToken();
+    console.log("after");
+
+    const payload = ticket.getPayload();
+
+    res.send({ payload });
+  } catch (error) {
+    res.status(500).send({ error: error });
   }
 };

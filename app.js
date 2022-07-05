@@ -42,4 +42,4 @@ const port = parseInt(process.env.PORT) || 5006;
 
 app.listen(port, () => console.log(`server started at ${port}`));
 
-// app.listen(port, "0.0.0.0", () => console.log(`server started at ${port}`)); to serve locally
+// app.listen(port, "0.0.0.0", () => console.log(`server started at ${port}`)); //to serve locally
