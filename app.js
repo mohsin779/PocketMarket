@@ -4,6 +4,7 @@ const cloudinary = require("cloudinary").v2;
 const path = require("path");
 const passport = require("passport");
 const expressSession = require("express-session");
+const { Server } = require("socket.io");
 
 require("dotenv").config();
 require("./config/db")();
@@ -40,6 +41,14 @@ app.get("/", (req, res) => {
 
 const port = parseInt(process.env.PORT) || 5006;
 
-app.listen(port, () => console.log(`server started at ${port}`));
+const server = app.listen(port, () => console.log(`server started at ${port}`));
+const io = new Server(server);
 
-// app.listen(port, "0.0.0.0", () => console.log(`server started at ${port}`)); to serve locally
+io.on("connection", () => {
+  console.log("User connected");
+  io.emit("connection", { message: "Client connected" });
+});
+
+app.set("socketio", io);
+
+// app.listen(port, "0.0.0.0", () => console.log(`server started at ${port}`)); //to serve locally
