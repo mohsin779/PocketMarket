@@ -43,27 +43,33 @@ exports.getProducts = async (req, res, next) => {
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
-    const prods = products.map((product) => {
-      let productName = product.name.get(ln);
-      let productDescription = product.description.get(ln);
-      let productFeatures = product.features.get(ln);
+    const prods = await Promise.all(
+      products.map(async (product) => {
+        const rating = await getRatings(product._id);
 
-      if (productName == "") {
-        productName = product.name.get("en");
-      }
-      if (productDescription == "") {
-        productDescription = product.description.get("en");
-      }
-      if (productFeatures == "") {
-        productFeatures = product.features.get("en");
-      }
-      return {
-        ...product._doc,
-        name: productName,
-        description: productFeatures,
-        features: productFeatures,
-      };
-    });
+        let productName = product.name.get(ln);
+        let productDescription = product.description.get(ln);
+        let productFeatures = product.features.get(ln);
+
+        if (productName == "") {
+          productName = product.name.get("en");
+        }
+        if (productDescription == "") {
+          productDescription = product.description.get("en");
+        }
+        if (productFeatures == "") {
+          productFeatures = product.features.get("en");
+        }
+
+        return {
+          ...product._doc,
+          name: productName,
+          description: productFeatures,
+          features: productFeatures,
+          rating,
+        };
+      })
+    );
 
     res.status(200).send({
       category: category.name.get(ln),
@@ -128,13 +134,14 @@ exports.getShop = async (req, res, next) => {
 };
 
 exports.getProduct = async (req, res, next) => {
-  const { ln, productId } = req.params;
-
-  const product = await Product.findById(productId).select("-retailPrice");
   try {
+    const { ln, productId } = req.params;
+
+    const product = await Product.findById(productId).select("-retailPrice");
     if (!product) {
       return res.status(404).send({ error: "Could not find Product." });
     }
+
     let productName = product.name.get(ln);
     let productDescription = product.description.get(ln);
     let productFeatures = product.features.get(ln);
@@ -148,11 +155,14 @@ exports.getProduct = async (req, res, next) => {
     if (productFeatures == "") {
       productFeatures = product.features.get("en");
     }
+    const rating = await getRatings(productId);
+
     let fetchedProduct = {
       ...product._doc,
       name: productName,
       description: productFeatures,
       features: productFeatures,
+      rating,
     };
 
     res
@@ -190,18 +200,17 @@ exports.search = async (req, res, next) => {
   }
 };
 
-exports.getRatings = async (req, res, next) => {
-  try {
-    const { productId } = req.params;
-    const ratings = await Rating.find({ product: productId });
-    if (ratings.length > 0) {
-      return res.status(200).send({ ratings: ratings });
-    } else {
-      return res.status(404).send({ error: "No ratings found!" });
-    }
-  } catch (err) {
-    res.status(500).send({ error: err });
-  }
+const getRatings = async (productId) => {
+  const ratings = await Rating.find({
+    product: productId,
+  });
+
+  const ratingsSum = ratings.reduce(function (total, currentValue) {
+    return total + currentValue.rating;
+  }, 0);
+
+  const average = ratingsSum / ratings.length;
+  return { totalRatings: ratings.length, avg: average };
 };
 
 exports.getLanguages = async (req, res, next) => {

@@ -9,6 +9,7 @@ const client = require("twilio")(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
+const cloudinary = require("cloudinary").v2;
 
 const CountryData = require("country-state-city").Country.getAllCountries();
 const StateData = require("country-state-city").State;
@@ -69,7 +70,7 @@ exports.updateCustomer = async (req, res, next) => {
     const customerId = req.user._id;
     const { error } = CustomerValidations.validate(req.body);
 
-    const io = req.app.get("socketio");
+    // const io = req.app.get("socketio");
 
     if (error) {
       return res
@@ -77,10 +78,21 @@ exports.updateCustomer = async (req, res, next) => {
         .send({ error: error.details[0].message });
     }
 
-    const { name, email, password, phoneNumber } = req.body;
+    const { name, email, password, phoneNumber, image } = req.body;
+
     const customer = await Customer.findById(customerId);
     if (!customer) {
       return res.status(404).send("Could not find Customer");
+    }
+    let imageUrl;
+    let imagePath = await cloudinary.uploader.upload(image);
+    imageUrl = imagePath.secure_url;
+    // clearImage(req.file.path);
+
+    if (imageUrl && imageUrl !== customer.image) {
+      var filename = customer.image.split("/").pop();
+      filename = filename.split(".")[0];
+      cloudinary.uploader.destroy(filename);
     }
 
     let hashedPw;
@@ -92,10 +104,16 @@ exports.updateCustomer = async (req, res, next) => {
       obj = { ...obj, password: hashedPw };
     }
 
-    const updatedUser = await Customer.findByIdAndUpdate(
-      customerId,
+    if (imageUrl) {
+      obj = { ...obj, image: imageUrl };
+    }
+
+    const user = await Customer.findOneAndUpdate(
+      { _id: customerId },
       obj
     ).select("-password -__v");
+
+    const updatedUser = await Customer.findById({ _id: user._id });
 
     res
       .status(200)
@@ -106,6 +124,7 @@ exports.updateCustomer = async (req, res, next) => {
     }
   }
 };
+
 exports.myOrders = async (req, res, next) => {
   try {
     const currentPage = parseInt(req.query.page) || 1;
@@ -133,6 +152,7 @@ exports.myOrders = async (req, res, next) => {
     }
   }
 };
+
 exports.orderDetails = async (req, res, next) => {
   try {
     const orderId = req.params.orderId;
@@ -179,6 +199,7 @@ exports.addNewAddress = async (req, res, next) => {
     res.status(500).send({ error: err });
   }
 };
+
 exports.deleteAddress = async (req, res, next) => {
   try {
     const { addressId } = req.params;
@@ -285,6 +306,7 @@ exports.addCard = async (req, res, next) => {
     res.status(500).send({ error: err });
   }
 };
+
 exports.getCard = async (req, res, next) => {
   try {
     console.log(req.user._id);
@@ -342,41 +364,22 @@ const saveOrder = async (req, orderId, products, totalPrice, addressId, ln) => {
     totalPrice: totalPrice,
   });
   await order.save();
-  if (ln == "en") {
-    products.forEach(async (prod) => {
-      const product = await Product.findById({ _id: prod._id });
-      let productName = product.name.get("nameEn");
-      if (productName == "") {
-        productName = product.name.get("nameFr");
-      }
-      const orderedProduct = new OrderedProduct({
-        orderId: order._id,
-        productId: product._id,
-        quantity: prod.quantity,
-        unitPrice: product.sellingPrice,
-        name: productName,
-        shopId: product.creator,
-      });
-      await orderedProduct.save();
+  products.forEach(async (prod) => {
+    const product = await Product.findById({ _id: prod._id });
+    let productName = product.name.get(ln);
+    if (productName == "") {
+      productName = product.name.get("en");
+    }
+    const orderedProduct = new OrderedProduct({
+      orderId: order._id,
+      productId: product._id,
+      quantity: prod.quantity,
+      unitPrice: product.sellingPrice,
+      name: productName,
+      shopId: product.creator,
     });
-  } else if (ln == "fr") {
-    products.forEach(async (prod) => {
-      const product = await Product.findById({ _id: prod._id });
-      let productName = product.name.get("nameFr");
-      if (productName == "") {
-        productName = product.name.get("nameEn");
-      }
-      const orderedProduct = new OrderedProduct({
-        orderId: order._id,
-        productId: product._id,
-        quantity: prod.quantity,
-        unitPrice: product.sellingPrice,
-        name: productName,
-        shopId: product.creator,
-      });
-      await orderedProduct.save();
-    });
-  }
+    await orderedProduct.save();
+  });
 
   updateProductsQuantity(products);
 };

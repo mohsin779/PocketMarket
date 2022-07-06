@@ -12,6 +12,7 @@ const { UpdateRequest } = require("../models/updateRequests");
 const { OrderedProduct } = require("../models/orderedProduct");
 const { Order } = require("../models/order");
 const { Language } = require("../models/language");
+const { Rating } = require("../models/rating");
 const { required } = require("joi");
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -54,27 +55,33 @@ exports.myProducts = async (req, res, next) => {
       .populate("category")
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
-    const prods = products.map((product) => {
-      let productName = product.name.get(ln);
-      let productDescription = product.description.get(ln);
-      let productFeatures = product.features.get(ln);
 
-      if (productName == "") {
-        productName = product.name.get("en");
-      }
-      if (productDescription == "") {
-        productDescription = product.description.get("en");
-      }
-      if (productFeatures == "") {
-        productFeatures = product.features.get("en");
-      }
-      return {
-        ...product._doc,
-        name: productName,
-        description: productFeatures,
-        features: productFeatures,
-      };
-    });
+    const prods = await Promise.all(
+      products.map(async (product) => {
+        const rating = await getRatings(product._id);
+
+        let productName = product.name.get(ln);
+        let productDescription = product.description.get(ln);
+        let productFeatures = product.features.get(ln);
+
+        if (productName == "") {
+          productName = product.name.get("en");
+        }
+        if (productDescription == "") {
+          productDescription = product.description.get("en");
+        }
+        if (productFeatures == "") {
+          productFeatures = product.features.get("en");
+        }
+        return {
+          ...product._doc,
+          name: productName,
+          description: productFeatures,
+          features: productFeatures,
+          rating,
+        };
+      })
+    );
     return res.json({
       products: prods,
       totalpages: Math.ceil(totalItems / perPage),
@@ -86,8 +93,7 @@ exports.myProducts = async (req, res, next) => {
 
 exports.getProduct = async (req, res, next) => {
   try {
-    const { ln } = req.params;
-    const productId = req.params.productId;
+    const { ln, productId } = req.params;
     const product = await Product.findById(productId).populate("category");
     if (req.user._id.toString() !== product.creator.toString()) {
       return res.status(401).send({ error: "Not Authorized" });
@@ -108,11 +114,15 @@ exports.getProduct = async (req, res, next) => {
     if (productFeatures == "") {
       productFeatures = product.features.get("en");
     }
+
+    const rating = await getRatings(productId);
+
     let fetchedProduct = {
       ...product._doc,
       name: productName,
       description: productFeatures,
       features: productFeatures,
+      rating,
     };
 
     res
@@ -451,6 +461,19 @@ exports.resetPassword = async (req, res, next) => {
   } catch (err) {
     res.status(500).send({ error: err });
   }
+};
+
+const getRatings = async (productId) => {
+  const ratings = await Rating.find({
+    product: productId,
+  });
+
+  const ratingsSum = ratings.reduce(function (total, currentValue) {
+    return total + currentValue.rating;
+  }, 0);
+
+  const average = ratingsSum / ratings.length;
+  return { totalRatings: ratings.length, avg: average };
 };
 
 const clearImage = (filePath) => {

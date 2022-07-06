@@ -9,6 +9,7 @@ const customerSchema = new Schema({
   phoneNumber: Number,
   email: String,
   password: String,
+  image: String,
 });
 
 customerSchema.methods.genAuthToken = function () {
@@ -27,8 +28,9 @@ customerSchema.methods.genAuthToken = function () {
 const validation = Joi.object({
   name: Joi.string().min(3).max(25).trim(true).required(),
   email: Joi.string().email().trim(true).required(),
-  password: Joi.string().min(8).trim(true),
+  password: [Joi.string().min(8).trim(true).optional(), Joi.allow(null)],
   phoneNumber: Joi.string().required(),
+  image: [Joi.string().optional(), Joi.allow(null)],
 });
 
 const Customer = mongoose.model("Customer", customerSchema);

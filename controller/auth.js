@@ -98,13 +98,21 @@ exports.customerSignup = async (req, res, next) => {
       email: email,
       password: hashedPw,
       phoneNumber: phoneNumber,
+      image: "",
     });
     const result = await customer.save();
     const token = result.genAuthToken();
-
-    res
-      .status(201)
-      .json({ message: "Customer created!", token: token, customer: customer });
+    const createdCustomer = {
+      name: customer.name,
+      email: customer.email,
+      phoneNumber: customer.phoneNumber,
+      image: customer.image,
+    };
+    res.status(201).json({
+      message: "Customer created!",
+      token: token,
+      customer: createdCustomer,
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -136,6 +144,7 @@ exports.customerLogin = async (req, res, next) => {
       email: customer.email,
       phoneNumber: customer.phoneNumber,
       _id: customer._id,
+      image: customer.image,
     };
 
     res.status(200).json({ token: token, customer: sendCustomer });
@@ -175,7 +184,7 @@ exports.socialLogin = async (req, res) => {
       requiredAudience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { email, email_verified, name } = payload;
+    const { email, email_verified, name, picture } = payload;
     let token;
     if (email_verified) {
       const existingCustomer = await Customer.findOne({ email: email });
@@ -186,6 +195,7 @@ exports.socialLogin = async (req, res) => {
           email: email,
           password: null,
           phoneNumber: null,
+          image: picture,
         });
         const result = await customer.save();
         token = result.genAuthToken();
@@ -194,6 +204,7 @@ exports.socialLogin = async (req, res) => {
           name: result.name,
           email: result.email,
           phoneNumber: result.phoneNumber,
+          image: result.image,
         };
         res.status(200).send({ customer: newCustomer, token: token });
       } else {
@@ -202,6 +213,7 @@ exports.socialLogin = async (req, res) => {
           name: existingCustomer.name,
           email: existingCustomer.email,
           phoneNumber: existingCustomer.phoneNumber,
+          image: existingCustomer.image,
         };
         const token = existingCustomer.genAuthToken();
         res.status(200).send({ customer: customer, token: token });
