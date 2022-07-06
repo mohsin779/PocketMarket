@@ -137,7 +137,9 @@ exports.getProduct = async (req, res, next) => {
   try {
     const { ln, productId } = req.params;
 
-    const product = await Product.findById(productId).select("-retailPrice");
+    const product = await Product.findById(productId)
+      .select("-retailPrice")
+      .populate("creator", "name email");
     if (!product) {
       return res.status(404).send({ error: "Could not find Product." });
     }
