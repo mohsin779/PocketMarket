@@ -131,7 +131,11 @@ exports.customerLogin = async (req, res, next) => {
         .status(401)
         .send({ error: "A customer with this email could not be found." });
     }
-
+    if (customer.password == null) {
+      return res
+        .status(401)
+        .send({ error: "You need to sign in with your google account." });
+    }
     const isEqual = await bcrypt.compare(password, customer.password);
     if (!isEqual) {
       return res.status(401).send({ error: "Wrong password!" });
