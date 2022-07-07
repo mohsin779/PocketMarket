@@ -27,4 +27,11 @@ router.get("/get-addresses", isAuth, customerController.getAddresses);
 router.post("/add-card", isAuth, customerController.addCard);
 router.get("/get-card", isAuth, customerController.getCard);
 router.post("/add-rating", isAuth, customerController.addRating);
+router.post("/:ln/create-chat", isAuth, customerController.createChat);
+router.post("/send-message", isAuth, customerController.sendMessage);
+router.get(
+  "/get-messages/:conversation",
+  isAuth,
+  customerController.getMessges
+);
 module.exports = router;

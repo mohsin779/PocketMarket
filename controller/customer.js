@@ -1,7 +1,6 @@
+require("dotenv").config();
 const bcrypt = require("bcryptjs");
-const stripe = require("stripe")(
-  "sk_test_51L510HD6MLn8tqd5C7eNFKZrwPYh4p6yRCdzY25ByZwS2EYNtUqkqOWw8O4FdFNcRdNxHlU1VTD50wGmG9xKicqK00ojNx5w5N"
-);
+const stripe = require("stripe")(process.env.STRIPE_KEY);
 const { StatusCodes } = require("http-status-codes");
 
 const nodemailer = require("nodemailer");
@@ -22,6 +21,9 @@ const { OrderedProduct } = require("../models/orderedProduct");
 const { Address } = require("../models/address");
 const { Card, CardValidations } = require("../models/card");
 const { Rating } = require("../models/rating");
+const { UserConversation } = require("../models/userConversation");
+const { Conversation } = require("../models/conversation");
+const { Message } = require("../models/message");
 
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -70,8 +72,6 @@ exports.updateCustomer = async (req, res, next) => {
     const customerId = req.user._id;
     const { error } = CustomerValidations.validate(req.body);
 
-    // const io = req.app.get("socketio");
-
     if (error) {
       return res
         .status(StatusCodes.BAD_REQUEST)
@@ -85,9 +85,11 @@ exports.updateCustomer = async (req, res, next) => {
       return res.status(404).send("Could not find Customer");
     }
     let imageUrl;
-    let imagePath = await cloudinary.uploader.upload(image);
-    imageUrl = imagePath.secure_url;
-    // clearImage(req.file.path);
+    if (image) {
+      let imagePath = await cloudinary.uploader.upload(image);
+      imageUrl = imagePath.secure_url;
+      // clearImage(req.file.path);
+    }
 
     if (imageUrl && imageUrl !== customer.image) {
       var filename = customer.image.split("/").pop();
@@ -224,9 +226,6 @@ exports.deleteAddress = async (req, res, next) => {
 
 exports.addToOrder = async (req, res, next) => {
   try {
-    const { email } = req.user;
-
-    let productName;
     const { ln } = req.params;
     const { paymentMethod, products, addressId, orderId } = req.body;
 
@@ -464,4 +463,77 @@ exports.addRating = async (req, res, next) => {
   } catch (err) {
     res.status(500).send({ error: err });
   }
+};
+
+exports.createChat = async (req, res, next) => {
+  // const io = req.app.get("socketio");
+  const { ln } = req.params;
+  const { productId } = req.body;
+  const prod = await Product.findById(productId);
+  const uId = req.user._id;
+  const conversations = await UserConversation.find({
+    user: uId,
+  }).populate("conversation");
+  let conversation;
+  if (conversations.length) {
+    const product = conversations.find(
+      (conv) => conv.conversation.productId == productId
+    );
+    if (!product) {
+      conversation = await createConversation(ln, req.user._id, prod);
+      res.send({
+        message: "conversation created!",
+        conversation: conversation,
+      });
+    } else {
+      res.status(200).send({
+        message: "Conversation already exists",
+        conversation: product.conversation._id,
+      });
+    }
+  } else {
+    conversation = await createConversation(ln, req.user._id, prod);
+    res.send({ message: "conversation created!", conversation: conversation });
+  }
+};
+
+exports.sendMessage = async (req, res, next) => {
+  const { conversation, message, user, shop, sender } = req.body;
+  const newMessage = new Message({
+    conversation: conversation,
+    message: message,
+    user: user,
+    shop: shop,
+    sendDate: new Date(),
+    sender: sender,
+  });
+  await newMessage.save();
+  const io = req.app.get("socketio");
+  io.emit(`conversation-${conversation}`, newMessage);
+
+  return res.send({ newMessage });
+};
+
+exports.getMessges = async (req, res, next) => {
+  const { conversation } = req.params;
+  const messages = await Message.find({ conversation: conversation }).select(
+    "sender message sendDate"
+  );
+  res.send({ messages });
+};
+const createConversation = async (ln, userId, product) => {
+  const user = await Customer.findById(userId);
+  const conversation = new Conversation({
+    productId: product._id,
+    chatRoom: user.name + " " + product.name.get(ln),
+  });
+  await conversation.save();
+  const userConversation = new UserConversation({
+    user: userId,
+    shop: product.creator,
+    conversation: conversation._id,
+  });
+  await userConversation.save();
+
+  return conversation._id;
 };

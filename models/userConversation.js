@@ -4,17 +4,17 @@ const Joi = require("joi").extend(require("@joi/date"));
 const Schema = mongoose.Schema;
 
 const userConversationSchema = new Schema({
-  conversationId: {
+  conversation: {
     type: Schema.Types.ObjectId,
     ref: "Conversation",
     require: true,
   },
-  userId: {
+  user: {
     type: Schema.Types.ObjectId,
     ref: "Customer",
     require: true,
   },
-  participentId: {
+  shop: {
     type: Schema.Types.ObjectId,
     ref: "Shop",
     require: true,
