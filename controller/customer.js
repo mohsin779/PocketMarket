@@ -521,6 +521,11 @@ exports.getMessges = async (req, res, next) => {
   );
   res.send({ messages });
 };
+exports.getConversations = async (req, res, next) => {
+  const user = req.user._id;
+  const conversations = await Conversation.find({ user: user });
+  return res.status(200).send({ conversations });
+};
 const createConversation = async (ln, userId, product) => {
   const user = await Customer.findById(userId);
   const conversation = new Conversation({

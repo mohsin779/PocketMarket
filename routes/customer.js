@@ -34,4 +34,5 @@ router.get(
   isAuth,
   customerController.getMessges
 );
+router.get("/conversations", isAuth, customerController.getConversations);
 module.exports = router;

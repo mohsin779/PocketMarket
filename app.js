@@ -43,11 +43,11 @@ app.get("/", (req, res) => {
 
 const port = parseInt(process.env.PORT) || 5006;
 
-// const server = app.listen(port, () => console.log(`server started at ${port}`));
+const server = app.listen(port, () => console.log(`server started at ${port}`));
 
-const server = app.listen(port, "0.0.0.0", () =>
-  console.log(`server started at ${port}`)
-); //to serve locally
+// const server = app.listen(port, "0.0.0.0", () =>
+//   console.log(`server started at ${port}`)
+// ); //to serve locally
 
 const io = new Server(server, {
   cors: {
