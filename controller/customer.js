@@ -523,7 +523,10 @@ exports.getMessges = async (req, res, next) => {
 };
 exports.getConversations = async (req, res, next) => {
   const user = req.user._id;
-  const conversations = await Conversation.find({ user: user });
+  const conversations = await UserConversation.find({ user: user }).populate(
+    "conversation"
+  );
+
   return res.status(200).send({ conversations });
 };
 const createConversation = async (ln, userId, product) => {
