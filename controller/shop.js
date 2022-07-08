@@ -65,13 +65,13 @@ exports.myProducts = async (req, res, next) => {
         let productFeatures = product.features.get(ln);
 
         if (productName == "") {
-          productName = product.name.get("en");
+          productName = product.name.get("en-US");
         }
         if (productDescription == "") {
-          productDescription = product.description.get("en");
+          productDescription = product.description.get("en-US");
         }
         if (productFeatures == "") {
-          productFeatures = product.features.get("en");
+          productFeatures = product.features.get("en-US");
         }
         return {
           ...product._doc,
@@ -106,13 +106,13 @@ exports.getProduct = async (req, res, next) => {
     let productFeatures = product.features.get(ln);
 
     if (productName == "") {
-      productName = product.name.get("en");
+      productName = product.name.get("en-US");
     }
     if (productDescription == "") {
-      productDescription = product.description.get("en");
+      productDescription = product.description.get("en-US");
     }
     if (productFeatures == "") {
-      productFeatures = product.features.get("en");
+      productFeatures = product.features.get("en-US");
     }
 
     const rating = await getRatings(productId);

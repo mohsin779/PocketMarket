@@ -18,7 +18,7 @@ const seeder = async () => {
     .catch((err) => console.error("Could not connect to MongoDb... ", err));
 
   const languages = ["English", "French"];
-  const codes = ["en", "fr"];
+  const codes = ["en-US", "fr"];
 
   const roles = ["Super admin", "Shop"];
   const categoriesEn = ["Electronics", "Kitchen"];
@@ -45,7 +45,7 @@ const seeder = async () => {
     en = name;
     fr = categoriesFr[index];
     const category = new Category({
-      name: { en, fr },
+      name: { "en-US": en, fr },
       imageUrl: category_images[index],
     });
 

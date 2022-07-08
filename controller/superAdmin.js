@@ -21,6 +21,7 @@ exports.getRoles = async (req, res, next) => {
     res.status(500).send({ error: err });
   }
 };
+
 exports.getShops = async (req, res, next) => {
   try {
     const shops = await Shop.find().select("-password").populate("role");

@@ -13,7 +13,7 @@ exports.getCategories = async (req, res, next) => {
     const catgr = categories.map((category) => {
       let ctegoryName = category.name.get(ln);
       if (ctegoryName == "") {
-        ctegoryName = category.name.get("en");
+        ctegoryName = category.name.get("en-US");
       }
       return {
         ...category._doc,
@@ -53,13 +53,13 @@ exports.getProducts = async (req, res, next) => {
         let productFeatures = product.features.get(ln);
 
         if (productName == "") {
-          productName = product.name.get("en");
+          productName = product.name.get("en-US");
         }
         if (productDescription == "") {
-          productDescription = product.description.get("en");
+          productDescription = product.description.get("en-US");
         }
         if (productFeatures == "") {
-          productFeatures = product.features.get("en");
+          productFeatures = product.features.get("en-US");
         }
 
         return {
@@ -99,13 +99,13 @@ exports.changeNames = async (req, res, next) => {
       let productFeatures = product.features.get(ln);
 
       if (productName == "") {
-        productName = product.name.get("en");
+        productName = product.name.get("en-US");
       }
       if (productDescription == "") {
-        productDescription = product.description.get("en");
+        productDescription = product.description.get("en-US");
       }
       if (productFeatures == "") {
-        productFeatures = product.features.get("en");
+        productFeatures = product.features.get("en-US");
       }
       return {
         ...product._doc,
@@ -150,13 +150,13 @@ exports.getProduct = async (req, res, next) => {
     let productFeatures = product.features.get(ln);
 
     if (productName == "") {
-      productName = product.name.get("en");
+      productName = product.name.get("en-US");
     }
     if (productDescription == "") {
-      productDescription = product.description.get("en");
+      productDescription = product.description.get("en-US");
     }
     if (productFeatures == "") {
-      productFeatures = product.features.get("en");
+      productFeatures = product.features.get("en-US");
     }
     const rating = await getRatings(productId);
 
@@ -218,7 +218,7 @@ exports.getReviews = async (req, res, next) => {
     const productDetails = await Product.findById(product);
     let productName = productDetails.name.get(ln);
     if (productName == "") {
-      productName = productDetails.name.get("en");
+      productName = productDetails.name.get("en-US");
     }
 
     const reviews = await Review.find({ product: product }).populate(

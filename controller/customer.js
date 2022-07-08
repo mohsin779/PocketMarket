@@ -368,7 +368,7 @@ const saveOrder = async (req, orderId, products, totalPrice, addressId, ln) => {
     const product = await Product.findById({ _id: prod._id });
     let productName = product.name.get(ln);
     if (productName == "") {
-      productName = product.name.get("en");
+      productName = product.name.get("en-US");
     }
     const orderedProduct = new OrderedProduct({
       orderId: order._id,
