@@ -35,4 +35,11 @@ router.get(
   customerController.getMessges
 );
 router.get("/conversations", isAuth, customerController.getConversations);
+router.post("/add-review", isAuth, customerController.addReview);
+router.delete(
+  "/delete-review/:review",
+  isAuth,
+  customerController.deleteReview
+);
+
 module.exports = router;

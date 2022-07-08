@@ -15,5 +15,6 @@ router.get("/products/:ln/get-product/:productId", publicConrtoller.getProduct);
 router.post("/products/:ln/change-names", publicConrtoller.changeNames);
 router.post("/products/:ln/search", publicConrtoller.search);
 router.get("/get-languages", publicConrtoller.getLanguages);
+router.get("/:ln/get-reviews/:product", publicConrtoller.getReviews);
 
 module.exports = router;

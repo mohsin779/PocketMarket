@@ -24,6 +24,7 @@ const { Rating } = require("../models/rating");
 const { UserConversation } = require("../models/userConversation");
 const { Conversation } = require("../models/conversation");
 const { Message } = require("../models/message");
+const { Review } = require("../models/review");
 
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -466,69 +467,121 @@ exports.addRating = async (req, res, next) => {
 };
 
 exports.createChat = async (req, res, next) => {
-  // const io = req.app.get("socketio");
-  const { ln } = req.params;
-  const { productId } = req.body;
-  const prod = await Product.findById(productId);
-  const uId = req.user._id;
-  const conversations = await UserConversation.find({
-    user: uId,
-  }).populate("conversation");
-  let conversation;
-  if (conversations.length) {
-    const product = conversations.find(
-      (conv) => conv.conversation.productId == productId
-    );
-    if (!product) {
+  try {
+    const { ln } = req.params;
+    const { productId } = req.body;
+    const prod = await Product.findById(productId);
+    const uId = req.user._id;
+    const conversations = await UserConversation.find({
+      user: uId,
+    }).populate("conversation");
+    let conversation;
+    if (conversations.length) {
+      const product = conversations.find(
+        (conv) => conv.conversation.productId == productId
+      );
+      if (!product) {
+        conversation = await createConversation(ln, req.user._id, prod);
+        res.send({
+          message: "conversation created!",
+          conversation: conversation,
+        });
+      } else {
+        res.status(200).send({
+          message: "Conversation already exists",
+          conversation: product.conversation._id,
+        });
+      }
+    } else {
       conversation = await createConversation(ln, req.user._id, prod);
       res.send({
         message: "conversation created!",
         conversation: conversation,
       });
-    } else {
-      res.status(200).send({
-        message: "Conversation already exists",
-        conversation: product.conversation._id,
-      });
     }
-  } else {
-    conversation = await createConversation(ln, req.user._id, prod);
-    res.send({ message: "conversation created!", conversation: conversation });
+  } catch (err) {
+    res.status(500).send({ error: err });
   }
 };
 
 exports.sendMessage = async (req, res, next) => {
-  const { conversation, message, user, shop, sender } = req.body;
-  const newMessage = new Message({
-    conversation: conversation,
-    message: message,
-    user: user,
-    shop: shop,
-    sendDate: new Date(),
-    sender: sender,
-  });
-  await newMessage.save();
-  const io = req.app.get("socketio");
-  io.emit(`conversation-${conversation}`, newMessage);
+  try {
+    const { conversation, message, user, shop, sender } = req.body;
+    const newMessage = new Message({
+      conversation: conversation,
+      message: message,
+      user: user,
+      shop: shop,
+      sendDate: new Date(),
+      sender: sender,
+    });
+    await newMessage.save();
+    const io = req.app.get("socketio");
+    io.emit(`conversation-${conversation}`, newMessage);
 
-  return res.send({ newMessage });
+    return res.send({ newMessage });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
 };
 
 exports.getMessges = async (req, res, next) => {
-  const { conversation } = req.params;
-  const messages = await Message.find({ conversation: conversation }).select(
-    "sender message sendDate"
-  );
-  res.send({ messages });
+  try {
+    const { conversation } = req.params;
+    const messages = await Message.find({ conversation: conversation }).select(
+      "sender message sendDate"
+    );
+    res.send({ messages });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
 };
-exports.getConversations = async (req, res, next) => {
-  const user = req.user._id;
-  const conversations = await UserConversation.find({ user: user }).populate(
-    "conversation"
-  );
 
-  return res.status(200).send({ conversations });
+exports.getConversations = async (req, res, next) => {
+  try {
+    const user = req.user._id;
+    const conversations = await UserConversation.find({ user: user }).populate(
+      "conversation"
+    );
+
+    return res.status(200).send({ conversations });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
 };
+
+exports.addReview = async (req, res, next) => {
+  try {
+    const { product, comment } = req.body;
+
+    const review = new Review({
+      customer: req.user._id,
+      product: product,
+      comment: comment,
+    });
+    const result = review.save();
+    if (result) {
+      return res.status(200).send({ messagee: "Thanks for your review." });
+    } else {
+      return res.status(500).send({ error: "failed to add review" });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.deleteReview = async (req, res, next) => {
+  const { review } = req.params;
+  const result = await Review.findByIdAndRemove(review);
+  if (result) {
+    return res
+      .status(200)
+      .send({ message: "Your review has been deleted susseccfully!" });
+  } else {
+    return res.status(400).send({ error: "failed to delete this review" });
+  }
+};
+
 const createConversation = async (ln, userId, product) => {
   const user = await Customer.findById(userId);
   const conversation = new Conversation({

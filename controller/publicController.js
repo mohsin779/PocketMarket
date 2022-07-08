@@ -3,6 +3,7 @@ const { Product } = require("../models/product");
 const { Rating } = require("../models/rating");
 const { Shop } = require("../models/shop");
 const { Language } = require("../models/language");
+const { Review } = require("../models/review");
 
 exports.getCategories = async (req, res, next) => {
   try {
@@ -202,6 +203,42 @@ exports.search = async (req, res, next) => {
   }
 };
 
+exports.getLanguages = async (req, res, next) => {
+  try {
+    const languages = await Language.find();
+    return res.status(200).send({ languages: languages });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.getReviews = async (req, res, next) => {
+  try {
+    const { ln, product } = req.params;
+    const productDetails = await Product.findById(product);
+    let productName = productDetails.name.get(ln);
+    if (productName == "") {
+      productName = productDetails.name.get("en");
+    }
+
+    const reviews = await Review.find({ product: product }).populate(
+      "product customer"
+    );
+    console.log(reviews);
+    const reviewsData = reviews.map((review) => {
+      return {
+        customer: review.customer.name,
+        comment: review.comment,
+      };
+    });
+    if (reviews) {
+      return res.status(200).send({ product: productName, reviewsData });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
 const getRatings = async (productId) => {
   const ratings = await Rating.find({
     product: productId,
@@ -213,13 +250,4 @@ const getRatings = async (productId) => {
 
   const average = ratingsSum / ratings.length;
   return { totalRatings: ratings.length, avg: average };
-};
-
-exports.getLanguages = async (req, res, next) => {
-  try {
-    const languages = await Language.find();
-    return res.status(200).send({ languages: languages });
-  } catch (err) {
-    res.status(500).send({ error: err });
-  }
 };
