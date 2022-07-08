@@ -29,8 +29,6 @@ const seeder = async () => {
     "https://res.cloudinary.com/dyppzmrda/image/upload/v1656583062/image_0000000000001_idtcr5.webp",
   ];
   languages.map(async (language, index) => {
-    console.log(language);
-    console.log(codes[index]);
     const ln = new Language({
       name: language,
       code: codes[index],
