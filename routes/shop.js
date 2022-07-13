@@ -30,7 +30,7 @@ router.post("/update-shop", isAuth, shopController.updateShop);
 router.get("/myShop", isAuth, shopController.myShop);
 router.get("/:ln/get-product/:productId", isAuth, shopController.getProduct);
 router.get("/:ln/myProducts", isAuth, shopController.myProducts);
-router.get("/orders", isAuth, shopController.orders);
+router.get("/:ln/orders", isAuth, shopController.orders);
 router.put(
   "/update-order-status/:orderId",
   isAuth,

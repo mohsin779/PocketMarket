@@ -368,6 +368,7 @@ exports.uploadProducts = async (req, res, next) => {
 
 exports.orders = async (req, res, next) => {
   try {
+    const { ln } = req.params;
     const currentPage = parseInt(req.query.page) || 1;
     const perPage = parseInt(req.query.limit) || 10;
 
@@ -381,12 +382,24 @@ exports.orders = async (req, res, next) => {
       return res.json({ error: "You dont have any order" });
     }
 
-    const order = await OrderedProduct.find({ shopId: shopId })
+    const orders = await OrderedProduct.find({ shopId: shopId })
+      .populate("productId")
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
-
+    let name;
+    const newOrders = orders.map((order) => {
+      name = order.productId.name.get(ln);
+      if (name == "") {
+        name = order.productId.name.get("en-US");
+      }
+      return {
+        ...order._doc,
+        productId: order.productId._id,
+        productName: name,
+      };
+    });
     return res.json({
-      order: order,
+      orders: newOrders,
       totalpages: Math.ceil(totalItems / perPage),
     });
   } catch (err) {
