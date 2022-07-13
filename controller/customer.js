@@ -529,7 +529,7 @@ exports.getMessges = async (req, res, next) => {
   try {
     const { conversation } = req.params;
     const messages = await Message.find({ conversation: conversation }).select(
-      "sender message sendDate"
+      "user shop sender message sendDate"
     );
     res.send({ messages });
   } catch (err) {
