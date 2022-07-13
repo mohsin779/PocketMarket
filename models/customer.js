@@ -72,7 +72,7 @@ const Customer = sequelize.define("customer", {
   },
 });
 
-Shop.methods.genAuthToken = function () {
+Customer.genAuthToken = function () {
   const token = jwt.sign(
     {
       email: this.email,

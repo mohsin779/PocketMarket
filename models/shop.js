@@ -55,7 +55,7 @@ const Shop = sequelize.define("shop", {
   password: Sequelize.STRING,
 });
 
-Shop.methods.genAuthToken = function () {
+Shop.genAuthToken = function () {
   const token = jwt.sign(
     {
       email: this.email,

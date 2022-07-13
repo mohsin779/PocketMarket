@@ -37,7 +37,7 @@
 
 const Sequelize = require("sequelize");
 
-const sequelize = require("../util/database");
+const sequelize = require("../database");
 
 const OrderedProduct = sequelize.define("orderedProduct", {
   id: {
