@@ -13,6 +13,8 @@ const { OrderedProduct } = require("../models/orderedProduct");
 const { Order } = require("../models/order");
 const { Language } = require("../models/language");
 const { Rating } = require("../models/rating");
+const { UserConversation } = require("../models/userConversation");
+
 const { required } = require("joi");
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -473,6 +475,19 @@ exports.resetPassword = async (req, res, next) => {
     shop.password = hashedPw;
     await shop.save();
     res.status(200).send({ message: "Your password updated successfuly." });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.getConversations = async (req, res, next) => {
+  try {
+    const shop = req.user._id;
+    const conversations = await UserConversation.find({ shop: shop }).populate(
+      "conversation"
+    );
+
+    return res.status(200).send({ conversations });
   } catch (err) {
     res.status(500).send({ error: err });
   }

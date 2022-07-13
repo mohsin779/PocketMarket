@@ -584,9 +584,13 @@ exports.deleteReview = async (req, res, next) => {
 
 const createConversation = async (ln, userId, product) => {
   const user = await Customer.findById(userId);
+  let productName = product.name.get(ln);
+  if (productName == "") {
+    productName = product.name.get("en-US");
+  }
   const conversation = new Conversation({
     productId: product._id,
-    chatRoom: user.name + " " + product.name.get(ln),
+    chatRoom: user.name + " " + productName,
   });
   await conversation.save();
   const userConversation = new UserConversation({
