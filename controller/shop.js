@@ -124,6 +124,11 @@ exports.getProduct = async (req, res, next) => {
       categoryName = product.category.name.get("en-US");
     }
 
+    const category = {
+      _id: product.category._id,
+      name: categoryName,
+    };
+
     const rating = await getRatings(productId);
 
     let fetchedProduct = {
@@ -131,7 +136,7 @@ exports.getProduct = async (req, res, next) => {
       name: productName,
       description: productFeatures,
       features: productFeatures,
-      category: categoryName,
+      category: category,
       rating,
     };
 
