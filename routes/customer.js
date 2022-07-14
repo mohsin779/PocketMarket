@@ -34,7 +34,7 @@ router.get(
   isAuth,
   customerController.getMessges
 );
-router.get("/conversations", isAuth, customerController.getConversations);
+router.get("/:ln/conversations", isAuth, customerController.getConversations);
 router.post("/add-review", isAuth, customerController.addReview);
 router.delete(
   "/delete-review/:review",

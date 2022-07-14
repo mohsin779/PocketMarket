@@ -539,12 +539,30 @@ exports.getMessges = async (req, res, next) => {
 
 exports.getConversations = async (req, res, next) => {
   try {
+    const { ln } = req.params;
     const user = req.user._id;
     const conversations = await UserConversation.find({ user: user }).populate(
       "conversation"
     );
+    const updatedConverstion = await Promise.all(
+      conversations.map(async (conv) => {
+        const productDetails = await Product.findById(
+          conv.conversation.productId
+        );
+        // console.log(productDetails);
+        let name = productDetails.name.get(ln);
+        if (name == "") {
+          name = productDetails.name.get("en-US");
+        }
+        return {
+          ...conv._doc,
+          productName: name,
+          productImage: productDetails.imageUrl,
+        };
+      })
+    );
 
-    return res.status(200).send({ conversations });
+    return res.status(200).send({ conversations: updatedConverstion });
   } catch (err) {
     res.status(500).send({ error: err });
   }
@@ -590,7 +608,7 @@ const createConversation = async (ln, userId, product) => {
   }
   const conversation = new Conversation({
     productId: product._id,
-    chatRoom: user.name + " " + productName,
+    chatRoom: productName,
   });
   await conversation.save();
   const userConversation = new UserConversation({

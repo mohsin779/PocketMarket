@@ -383,7 +383,7 @@ exports.orders = async (req, res, next) => {
     }
 
     const orders = await OrderedProduct.find({ shopId: shopId })
-      .populate("productId")
+      .populate("productId orderId")
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
     let name;
@@ -396,6 +396,8 @@ exports.orders = async (req, res, next) => {
         ...order._doc,
         productId: order.productId._id,
         productName: name,
+        orderId: order.orderId._id,
+        orderStatus: order.orderId.status,
       };
     });
     return res.json({
@@ -496,11 +498,30 @@ exports.resetPassword = async (req, res, next) => {
 exports.getConversations = async (req, res, next) => {
   try {
     const shop = req.user._id;
+    const { ln } = req.params;
     const conversations = await UserConversation.find({ shop: shop }).populate(
       "conversation"
     );
 
-    return res.status(200).send({ conversations });
+    const updatedConverstion = await Promise.all(
+      conversations.map(async (conv) => {
+        const productDetails = await Product.findById(
+          conv.conversation.productId
+        );
+        console.log(productDetails);
+        let name = productDetails.name.get(ln);
+        if (name == "") {
+          name = productDetails.name.get("en-US");
+        }
+        return {
+          ...conv._doc,
+          productName: name,
+          productImage: productDetails.imageUrl,
+        };
+      })
+    );
+
+    return res.status(200).send({ conversations: updatedConverstion });
   } catch (err) {
     res.status(500).send({ error: err });
   }

@@ -46,6 +46,6 @@ router.post(
 router.get("/download-products", shopController.downloadProductsList);
 router.get("/send-code", shopController.sendEmail);
 router.put("/reset-password", shopController.resetPassword);
-router.get("/conversations", isAuth, shopController.getConversations);
+router.get("/:ln/conversations", isAuth, shopController.getConversations);
 
 module.exports = router;
