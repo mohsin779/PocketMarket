@@ -102,4 +102,8 @@ router.get(
   superAdminController.getCategory
 );
 
+router.get("/get-keys", isAuth, isSuperAdmin, superAdminController.getKeys);
+router.put("/update-key", isAuth, isSuperAdmin, superAdminController.updateKey);
+router.get("/get-key/:id", isAuth, isSuperAdmin, superAdminController.getKey);
+
 module.exports = router;

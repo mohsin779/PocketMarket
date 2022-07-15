@@ -12,6 +12,7 @@ const { OrderedProduct } = require("../models/orderedProduct");
 const { Product } = require("../models/product");
 const { Order } = require("../models/order");
 const { Language } = require("../models/language");
+const { Key } = require("../models/key");
 
 exports.getRoles = async (req, res, next) => {
   try {
@@ -375,6 +376,49 @@ exports.getCategory = async (req, res, next) => {
     console.log(categoryName);
     const obj = { ...category._doc, name: categoryName };
     return res.status(200).send({ category: obj });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.getKeys = async (req, res, next) => {
+  try {
+    const keys = await Key.find();
+    if (keys.length > 0) {
+      return res.status(200).send(keys);
+    } else {
+      return res.status(404).send({ error: "no key found in database" });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.getKey = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const key = await Key.findById(id);
+    if (!key) {
+      return res.status(404).send({ error: "Key not exist againt this id" });
+    } else {
+      return res.status(200).send(key);
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.updateKey = async (req, res, next) => {
+  try {
+    const { id, value } = req.body;
+    const key = await Key.findById(id);
+    if (!key) {
+      return res.status(404).send({ error: "Key not exist againt this id" });
+    } else {
+      key.value = value;
+      await key.save();
+      return res.status(200).send(key);
+    }
   } catch (err) {
     res.status(500).send({ error: err });
   }
