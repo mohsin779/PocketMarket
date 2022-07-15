@@ -90,12 +90,39 @@ exports.updateShop = async (req, res, next) => {
       const deleteId = await UpdateRequest.findOne({ shopId: shopId });
       await UpdateRequest.findByIdAndRemove({ _id: deleteId._id });
     }
-    res.status(200).json({ message: "Shop updated!", shop: result });
+    const updatedShop = {
+      _id: result._id,
+      name: result.name,
+      email: result.email,
+    };
+    res.status(200).json({ message: "Shop updated!", shop: updatedShop });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.updateShopDirectly = async (req, res, next) => {
+  try {
+    const { id, name, email } = req.body;
+
+    const shop = await Shop.findById(id);
+    if (!shop) {
+      return res.status(404).send("Could not find Shop");
     }
-    next(err);
+
+    shop.name = name;
+    shop.email = email;
+
+    const result = await shop.save();
+    const updatedShop = {
+      _id: result._id,
+      name: result.name,
+      email: result.email,
+    };
+
+    res.status(200).json({ message: "Shop updated!", shop: updatedShop });
+  } catch (err) {
+    res.status(500).send({ error: err });
   }
 };
 

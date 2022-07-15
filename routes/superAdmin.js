@@ -30,6 +30,13 @@ router.put(
   superAdminController.updateShop
 );
 
+router.put(
+  "/shop-update",
+  isAuth,
+  isSuperAdmin,
+  superAdminController.updateShopDirectly
+);
+
 router.post(
   "/:ln/add-category/",
   isAuth,
