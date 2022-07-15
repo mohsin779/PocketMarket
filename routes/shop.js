@@ -44,7 +44,7 @@ router.post(
 );
 
 router.get("/download-products", shopController.downloadProductsList);
-router.get("/send-code", shopController.sendEmail);
+router.post("/send-code", shopController.sendEmail);
 router.put("/reset-password", shopController.resetPassword);
 router.get("/:ln/conversations", isAuth, shopController.getConversations);
 
