@@ -1014,6 +1014,11 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
+distance-calculator-js@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/distance-calculator-js/-/distance-calculator-js-1.0.0.tgz#fc8522d06ac2c9a7b9efcbb44ed75412a93809a2"
+  integrity sha512-O33cKhIpnpcihRDT/1z7DaQdlX8t7AgL0aXfeSid71MqZMI0BpGFSI2yK6XZulLcrU5+uTnJobSpjbVfwY9KSQ==
+
 dom-serializer@0:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/dom-serializer/-/dom-serializer-0.2.2.tgz#1afb81f533717175d478655debc5e332d9f9bb51"

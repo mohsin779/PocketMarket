@@ -196,6 +196,7 @@ exports.addProduct = async (req, res) => {
         .status(StatusCodes.BAD_REQUEST)
         .send({ error: "please add an image for this product" });
     }
+
     let imagePath = await cloudinary.uploader.upload(file.path);
 
     let obj = {
@@ -226,7 +227,6 @@ exports.addProduct = async (req, res) => {
     const product = new Product(obj);
 
     await product.save();
-
     clearImage(file.path);
     const createdProduct = await Product.findById({
       _id: product._id,
@@ -508,7 +508,7 @@ exports.getConversations = async (req, res, next) => {
         const productDetails = await Product.findById(
           conv.conversation.productId
         );
-        console.log(productDetails);
+        // console.log(productDetails);
         let name = productDetails.name.get(ln);
         if (name == "") {
           name = productDetails.name.get("en-US");

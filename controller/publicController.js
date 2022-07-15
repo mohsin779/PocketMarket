@@ -1,3 +1,5 @@
+const DistanceCalculator = require("distance-calculator-js");
+
 const { Category } = require("../models/category");
 const { Product } = require("../models/product");
 const { Rating } = require("../models/rating");
@@ -30,6 +32,7 @@ exports.getCategories = async (req, res, next) => {
 exports.getProducts = async (req, res, next) => {
   try {
     const { ln, categoryId } = req.params;
+    const { latitude, longitude } = req.body;
     const currentPage = parseInt(req.query.page) || 1;
     const perPage = parseInt(req.query.limit) || 10;
 
@@ -40,7 +43,7 @@ exports.getProducts = async (req, res, next) => {
 
     const products = await Product.find({ category: categoryId })
       .select("-retailPrice")
-      .populate("category")
+      .populate("creator")
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
@@ -61,20 +64,33 @@ exports.getProducts = async (req, res, next) => {
         if (productFeatures == "") {
           productFeatures = product.features.get("en-US");
         }
-
-        return {
-          ...product._doc,
-          name: productName,
-          description: productFeatures,
-          features: productFeatures,
-          rating,
-        };
+        const distance = calcDist(
+          product.creator.latitude,
+          product.creator.longitude,
+          latitude,
+          longitude
+        );
+        //distance less than or equal to 7Km
+        if (distance <= 7) {
+          return {
+            ...product._doc,
+            name: productName,
+            description: productFeatures,
+            features: productFeatures,
+            creator: product.creator._id,
+            rating,
+            distance,
+          };
+        }
       })
     );
+    const fetchedProducts = prods.filter((product) => {
+      return product;
+    });
 
     res.status(200).send({
       category: category.name.get(ln),
-      products: prods,
+      products: fetchedProducts,
       totalpages: Math.ceil(totalItems / perPage),
     });
   } catch (err) {
@@ -122,9 +138,9 @@ exports.changeNames = async (req, res, next) => {
 };
 
 exports.getShop = async (req, res, next) => {
-  const shopId = req.params.shopId;
-  const shop = await Shop.findById(shopId).select("-password -role");
   try {
+    const shopId = req.params.shopId;
+    const shop = await Shop.findById(shopId).select("-password -role");
     if (!shop) {
       return res.status(404).send("Could not find Shop");
     }
@@ -179,25 +195,36 @@ exports.getProduct = async (req, res, next) => {
 exports.search = async (req, res, next) => {
   try {
     const { ln } = req.params;
-    const { productName } = req.body;
+    const { productName, latitude, longitude } = req.body;
 
     const name = `name.${ln}`;
 
-    let results = await Product.find(
+    let products = await Product.find(
       {
         [name]: { $regex: ".*" + productName + ".*", $options: "i" },
       },
-      { name: 1 }
-    );
+      { name: 1, creator: 1 }
+    ).populate("creator");
 
-    const newResults = results.map((item) => {
-      return {
-        _id: item._id,
-        name: item.name.get(ln),
-      };
+    const results = products.map((product) => {
+      const distance = calcDist(
+        product.creator.latitude,
+        product.creator.longitude,
+        latitude,
+        longitude
+      );
+      if (distance <= 7) {
+        return {
+          _id: product._id,
+          name: product.name.get(ln),
+          distance,
+        };
+      }
     });
-
-    return res.status(200).send({ products: newResults });
+    const fetchedProducts = results.filter((product) => {
+      return product;
+    });
+    return res.status(200).send({ products: fetchedProducts });
   } catch (err) {
     res.status(500).send({ error: err });
   }
@@ -250,4 +277,11 @@ const getRatings = async (productId) => {
 
   const average = ratingsSum / ratings.length;
   return { totalRatings: ratings.length, avg: average };
+};
+
+const calcDist = (lat1, lon1, lat2, lon2) => {
+  const shop = { lat: lat1, long: lon1 };
+  const user = { lat: lat2, long: lon2 };
+  const d = DistanceCalculator.calculate(shop, user, "km");
+  return d;
 };

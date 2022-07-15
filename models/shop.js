@@ -10,6 +10,8 @@ const shopSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Role",
   },
+  latitude: Number,
+  longitude: Number,
 });
 
 shopSchema.methods.genAuthToken = function () {
@@ -31,6 +33,8 @@ const validation = Joi.object({
   email: Joi.string().email().trim(true).required(),
   password: Joi.string().min(8).trim(true).required(),
   role: Joi.string().required(),
+  latitude: Joi.number().required(),
+  longitude: Joi.number().required(),
 });
 
 const Shop = model("Shop", shopSchema);
