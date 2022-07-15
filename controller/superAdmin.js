@@ -219,7 +219,9 @@ exports.updateCategory = async (req, res, next) => {
     );
 
     if (checkCategory) {
-      clearImage(req.file.path);
+      if (req.file) {
+        clearImage(req.file.path);
+      }
       return res
         .status(401)
         .send({ error: "A Category with this name already exists" });
