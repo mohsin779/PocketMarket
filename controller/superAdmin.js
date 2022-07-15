@@ -33,7 +33,7 @@ exports.getShops = async (req, res, next) => {
 
 exports.createShop = async (req, res, next) => {
   try {
-    const { email, name, password, role } = req.body;
+    const { email, name, password, role, latitude, longitude } = req.body;
 
     const existingShop = await Shop.findOne({ email: email });
     if (existingShop) {
@@ -48,6 +48,8 @@ exports.createShop = async (req, res, next) => {
       email: email,
       password: hashedPw,
       role: role,
+      latitude: latitude,
+      longitude: longitude,
     });
     await shop.save();
 
@@ -321,6 +323,22 @@ exports.addLanguage = async (req, res, next) => {
     });
     await lan.save();
     return res.status(200).send({ message: "language added." });
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.getCategory = async (req, res, next) => {
+  try {
+    const { ln, id } = req.params;
+    const category = await Category.findById(id);
+    let categoryName = category.name.get(ln);
+    if (categoryName == "") {
+      categoryName = category.name.get("en-US");
+    }
+    console.log(categoryName);
+    const obj = { ...category._doc, name: categoryName };
+    return res.status(200).send({ category: obj });
   } catch (err) {
     res.status(500).send({ error: err });
   }

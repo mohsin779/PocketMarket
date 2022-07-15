@@ -88,4 +88,11 @@ router.put(
   superAdminController.updateCategory
 );
 
+router.get(
+  "/:ln/get-category/:id",
+  isAuth,
+  isSuperAdmin,
+  superAdminController.getCategory
+);
+
 module.exports = router;
