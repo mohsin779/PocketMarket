@@ -141,7 +141,10 @@ exports.myOrders = async (req, res, next) => {
     if (totalItems == 0) {
       return res.json({ error: "You did not placed any order" });
     }
-    const orders = await Order.find({ customerId: customerId })
+    const orders = await Order.find({
+      customerId: customerId,
+      status: "pending",
+    })
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
