@@ -82,6 +82,9 @@ exports.updateShop = async (req, res, next) => {
     }
     shop.name = update.name;
     shop.email = update.email;
+    shop.longitude = update.longitude;
+    shop.latitude = update.latitude;
+
     if (update.password) {
       shop.password = update.password;
     }
@@ -103,7 +106,7 @@ exports.updateShop = async (req, res, next) => {
 
 exports.updateShopDirectly = async (req, res, next) => {
   try {
-    const { id, name, email } = req.body;
+    const { id, name, email, latitude, longitude } = req.body;
 
     const shop = await Shop.findById(id);
     if (!shop) {
@@ -112,12 +115,16 @@ exports.updateShopDirectly = async (req, res, next) => {
 
     shop.name = name;
     shop.email = email;
+    shop.latitude = latitude;
+    shop.longitude = longitude;
 
     const result = await shop.save();
     const updatedShop = {
       _id: result._id,
       name: result.name,
       email: result.email,
+      longitude: result.longitude,
+      latitude: result.latitude,
     };
 
     res.status(200).json({ message: "Shop updated!", shop: updatedShop });

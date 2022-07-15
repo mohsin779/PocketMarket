@@ -7,6 +7,8 @@ const updateRequestSchema = new Schema({
   name: String,
   email: String,
   password: String,
+  longitude: Number,
+  latitude: Number,
 });
 
 updateRequestSchema.methods.genAuthToken = function () {
@@ -27,6 +29,8 @@ const validation = Joi.object({
   name: Joi.string().min(3).max(25).trim(true).required(),
   email: Joi.string().email().trim(true).required(),
   password: Joi.string().min(8).trim(true).required(),
+  latitude: Joi.number().required(),
+  longitude: Joi.number().required(),
 });
 
 const UpdateRequest = model("UpdateRequest", updateRequestSchema);

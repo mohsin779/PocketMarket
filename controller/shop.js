@@ -153,7 +153,7 @@ exports.getProduct = async (req, res, next) => {
 exports.updateShop = async (req, res, next) => {
   try {
     const shopId = req.user._id;
-    const { name, email, password } = req.body;
+    const { name, email, password, longitude, latitude } = req.body;
     let pass = password;
     if (password) {
       const hashedPw = await bcrypt.hash(password, 12);
@@ -165,6 +165,8 @@ exports.updateShop = async (req, res, next) => {
       name: name,
       email: email,
       password: pass,
+      longitude: longitude,
+      latitude: latitude,
     });
 
     await updateRequest.save();
