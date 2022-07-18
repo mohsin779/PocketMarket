@@ -1,13 +1,8 @@
-require("dotenv").config();
 const bcrypt = require("bcryptjs");
-const stripe = require("stripe")(process.env.STRIPE_KEY);
-const { StatusCodes } = require("http-status-codes");
-
 const nodemailer = require("nodemailer");
-const client = require("twilio")(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+const { Stripe } = require("stripe");
+const { StatusCodes } = require("http-status-codes");
+const { Twilio } = require("twilio");
 const cloudinary = require("cloudinary").v2;
 
 const CountryData = require("country-state-city").Country.getAllCountries();
@@ -25,6 +20,7 @@ const { UserConversation } = require("../models/userConversation");
 const { Conversation } = require("../models/conversation");
 const { Message } = require("../models/message");
 const { Review } = require("../models/review");
+const { Key } = require("../models/key");
 
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -244,6 +240,9 @@ exports.addToOrder = async (req, res, next) => {
     }, 0);
 
     if (paymentMethod === "card") {
+      const stripeKey = await Key.findOne({ name: "STRIPE_KEY" });
+      const stripe = new Stripe(stripeKey.value);
+
       const { cardId } = req.body;
       const cardDetails = await Card.findById(cardId);
       const month = cardDetails.expiryDate.split("/")[0];
@@ -275,7 +274,7 @@ exports.addToOrder = async (req, res, next) => {
       return res.json({ message: "order added!" });
     }
   } catch (err) {
-    res.status(500).send({ error: err.raw.message });
+    res.status(500).send({ error: err });
   }
 };
 
@@ -420,9 +419,15 @@ exports.sendEmailAndMessage = async (req, res, next) => {
     });
 
     //TWILIO SETUP
+    const accountSID = await Key.findOne({ name: "TWILIO_ACCOUNT_SID" });
+    const authToken = await Key.findOne({ name: "TWILIO_AUTH_TOKEN" });
+    const messaging_service_SID = await Key.findOne({
+      name: "MESSAGING_SERVICE_SID",
+    });
+    const client = new Twilio(accountSID.value, authToken.value);
     client.messages.create({
       body: "your reset password confirmation code is " + code,
-      messagingServiceSid: process.env.MESSAGING_SERVICE_SID,
+      messagingServiceSid: messaging_service_SID.value,
       to: "+92" + customer.phoneNumber,
     });
     //END TWILIO SETUP

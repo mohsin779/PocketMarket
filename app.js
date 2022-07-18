@@ -5,6 +5,7 @@ const path = require("path");
 // const passport = require("passport");
 // const expressSession = require("express-session");
 const { Server } = require("socket.io");
+const { Key } = require("./models/key");
 
 require("dotenv").config();
 require("./config/db")();
@@ -27,11 +28,18 @@ const app = express();
 // app.use(passport.session());
 // // end pasport setup
 
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
-});
+const configureCloudinary = async () => {
+  const cloud_name = await Key.findOne({ name: "CLOUDINARY_CLOUD_NAME" });
+  const api_key = await Key.findOne({ name: "CLOUDINARY_API_KEY" });
+  const api_secret = await Key.findOne({ name: "CLOUDINARY_API_SECRET" });
+  cloudinary.config({
+    cloud_name: cloud_name.value,
+    api_key: api_key.value,
+    api_secret: api_secret.value,
+  });
+};
+configureCloudinary();
+
 require("./config/morgan")(app);
 require("./config/routes")(app);
 
