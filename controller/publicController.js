@@ -242,16 +242,23 @@ exports.getLanguages = async (req, res, next) => {
 exports.getReviews = async (req, res, next) => {
   try {
     const { ln, product } = req.params;
+    const currentPage = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.limit) || 5;
+
     const productDetails = await Product.findById(product);
     let productName = productDetails.name.get(ln);
     if (productName == "") {
       productName = productDetails.name.get("en-US");
     }
 
-    const reviews = await Review.find({ product: product }).populate(
-      "product customer"
-    );
-    console.log(reviews);
+    let totalReviews = await Review.find({
+      product: product,
+    }).countDocuments();
+
+    const reviews = await Review.find({ product: product })
+      .populate("product customer")
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
     const reviewsData = reviews.map((review) => {
       return {
         customer: review.customer.name,
@@ -259,7 +266,11 @@ exports.getReviews = async (req, res, next) => {
       };
     });
     if (reviews) {
-      return res.status(200).send({ product: productName, reviewsData });
+      return res.status(200).send({
+        product: productName,
+        reviewsData,
+        totalpages: Math.ceil(totalReviews / perPage),
+      });
     }
   } catch (err) {
     res.status(500).send({ error: err });
