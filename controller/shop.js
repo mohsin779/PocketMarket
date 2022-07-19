@@ -292,7 +292,7 @@ exports.updateProduct = async (req, res) => {
 
     const result = await product.save();
 
-    res.status(200).json({ message: "Product updated!", product: result });
+    res.status(200).send({ message: "Product updated!", product: result });
   } catch (err) {
     res.status(500).send({ error: err });
   }
@@ -304,17 +304,40 @@ exports.deleteProduct = async (req, res, next) => {
     const product = await Product.findById(productId);
 
     if (!product) {
-      return res.status(404).send("Could not find product");
+      return res.status(404).send({ error: "Could not find product" });
     }
     if (product.creator.toString() !== req.user._id) {
-      return res.status(403).send("Not authorized!");
+      return res.status(403).send({ error: "Not authorized!" });
     }
-    var filename = product.imageUrl.split("/").pop();
-    filename = filename.split(".")[0];
-    cloudinary.uploader.destroy(filename);
-    await Product.findByIdAndRemove(productId);
+    const ordered = await OrderedProduct.find({ productId: productId });
+    if (ordered.length > 0) {
+      ordered.forEach(async (order) => {
+        let isPending = await Order.find({
+          _id: order.orderId,
+          status: "pending",
+        });
+        if (isPending.length > 0) {
+          return res.status(400).send({
+            error:
+              "You can't delete this product right now, because it's order status is pending",
+          });
+        } else {
+          var filename = product.imageUrl.split("/").pop();
+          filename = filename.split(".")[0];
+          cloudinary.uploader.destroy(filename);
+          await Product.findByIdAndRemove(productId);
 
-    res.status(200).json({ message: "Deleted product." });
+          return res.status(200).send({ message: "Deleted product." });
+        }
+      });
+    } else {
+      var filename = product.imageUrl.split("/").pop();
+      filename = filename.split(".")[0];
+      cloudinary.uploader.destroy(filename);
+      await Product.findByIdAndRemove(productId);
+
+      return res.status(200).send({ message: "Deleted product." });
+    }
   } catch (err) {
     res.status(500).send({ error: err });
   }

@@ -424,7 +424,53 @@ exports.updateKey = async (req, res, next) => {
   }
 };
 
+exports.sendNotification = async (req, res, next) => {
+  const { message } = req.body;
+  var msg = {
+    app_id: "c39fd41f-9972-43bd-adc8-454cb203c9c0",
+    contents: { en: message },
+    included_segments: ["Subscribed Users"],
+  };
+
+  const data = send(msg);
+  console.log(data);
+  res.status(200).send(data);
+};
+
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));
+};
+
+const send = (data) => {
+  var headers = {
+    "Content-Type": "application/json; charset=utf-8",
+    Authorization: "Basic OTdmMGRkZmEtNWY0ZS00ZTY3LWJkMWMtMjE0OGY3ODY1OTFk",
+  };
+
+  var options = {
+    host: "onesignal.com",
+    port: 443,
+    path: "/api/v1/notifications",
+    method: "POST",
+    headers: headers,
+  };
+
+  var https = require("https");
+  var req = https.request(options, function (res) {
+    res.on("data", function (data) {
+      console.log("Response:");
+      return JSON.parse(data);
+
+      // console.log(JSON.parse(data));
+    });
+  });
+
+  req.on("error", function (e) {
+    console.log("ERROR:");
+    console.log(e);
+  });
+
+  req.write(JSON.stringify(data));
+  req.end();
 };
