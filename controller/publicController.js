@@ -261,6 +261,7 @@ exports.getReviews = async (req, res, next) => {
       .limit(perPage);
     const reviewsData = reviews.map((review) => {
       return {
+        _id: review._id,
         customer: review.customer.name,
         comment: review.comment,
       };
