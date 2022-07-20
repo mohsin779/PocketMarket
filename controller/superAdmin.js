@@ -216,7 +216,9 @@ exports.updateCategory = async (req, res, next) => {
     const categories = await Category.find();
 
     let checkCategory = categories.some(
-      (category) => category.name.get(ln).toUpperCase() == name.toUpperCase()
+      (category) =>
+        category.name.get(ln).toUpperCase() == name.toUpperCase() &&
+        category._id != categoryId
     );
 
     if (checkCategory) {
