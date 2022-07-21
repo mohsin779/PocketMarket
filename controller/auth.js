@@ -1,6 +1,8 @@
 const { OAuth2Client } = require("google-auth-library");
 require("dotenv").config();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const nodeCron = require("node-cron");
+const nodemailer = require("nodemailer");
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -9,6 +11,16 @@ const { StatusCodes } = require("http-status-codes");
 const { SuperAdmin } = require("../models/superAdmin");
 const { Shop } = require("../models/shop");
 const { Customer, CustomerValidations } = require("../models/customer");
+const { Order } = require("../models/order");
+
+var transporter = nodemailer.createTransport({
+  host: "smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "9b7908fdc202ef",
+    pass: "1f751e6d25a72c",
+  },
+});
 
 exports.shopLogin = async (req, res, next) => {
   const { email, password } = req.body;
@@ -122,9 +134,8 @@ exports.customerSignup = async (req, res, next) => {
 };
 
 exports.customerLogin = async (req, res, next) => {
-  const { email, password } = req.body;
-
   try {
+    const { email, password } = req.body;
     const customer = await Customer.findOne({ email: email });
     if (!customer) {
       return res
@@ -151,6 +162,40 @@ exports.customerLogin = async (req, res, next) => {
       image: customer.image,
     };
 
+    const job = nodeCron.schedule("0 0 22 * * *", async () => {
+      const orders = await Order.find({ customerId: customer._id });
+      if (orders.length > 0) {
+        orders.forEach((order) => {
+          const deliveryDate = order.deliveryDate;
+
+          const year = deliveryDate.split("/")[0];
+          const month = deliveryDate.split("/")[1];
+          const date = deliveryDate.split("/")[2];
+
+          const today = new Date();
+          const delivery = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(date) + 1
+          );
+          var remainingDays = parseInt(
+            (delivery - today) / (1000 * 60 * 60 * 24)
+          );
+          if (remainingDays)
+            transporter.sendMail({
+              to: customer.email,
+              from: "amazonClon@gmail.com",
+              subject: "Order Delivery Reminder",
+              html:
+                "you will receive your order #" +
+                order._id.toString() +
+                " with in next " +
+                remainingDays +
+                " Days",
+            });
+        });
+      }
+    });
     res.status(200).json({ token: token, customer: sendCustomer });
   } catch (err) {
     if (!err.statusCode) {

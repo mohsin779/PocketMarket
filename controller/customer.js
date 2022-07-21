@@ -4,6 +4,7 @@ const { Stripe } = require("stripe");
 const { StatusCodes } = require("http-status-codes");
 const { Twilio } = require("twilio");
 const cloudinary = require("cloudinary").v2;
+const date = require("date-and-time");
 
 const CountryData = require("country-state-city").Country.getAllCountries();
 const StateData = require("country-state-city").State;
@@ -357,44 +358,6 @@ exports.orderHistory = async (req, res, next) => {
   }
 };
 
-const saveOrder = async (req, orderId, products, totalPrice, addressId, ln) => {
-  const order = new Order({
-    customerId: req.user._id,
-    addressId: addressId,
-    status: "pending",
-    orderId: orderId,
-    totalPrice: totalPrice,
-  });
-  await order.save();
-  products.forEach(async (prod) => {
-    const product = await Product.findById({ _id: prod._id });
-    let productName = product.name.get(ln);
-    if (productName == "") {
-      productName = product.name.get("en-US");
-    }
-    const orderedProduct = new OrderedProduct({
-      orderId: order._id,
-      productId: product._id,
-      quantity: prod.quantity,
-      unitPrice: product.sellingPrice,
-      name: productName,
-      shopId: product.creator,
-    });
-    await orderedProduct.save();
-  });
-
-  updateProductsQuantity(products);
-};
-
-const updateProductsQuantity = async (products) => {
-  products.forEach(async (prod) => {
-    const product = await Product.findById({ _id: prod._id });
-    const updatedQuantity = product.quantity - prod.quantity;
-    product.quantity = updatedQuantity;
-    await product.save();
-  });
-};
-
 exports.sendEmailAndMessage = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -606,6 +569,48 @@ exports.deleteReview = async (req, res, next) => {
   } else {
     return res.status(400).send({ error: "failed to delete this review" });
   }
+};
+
+const saveOrder = async (req, orderId, products, totalPrice, addressId, ln) => {
+  const now = new Date();
+  let delivery = date.addDays(now, 2);
+  delivery = date.format(delivery, "YYYY/MM/DD");
+  const order = new Order({
+    customerId: req.user._id,
+    addressId: addressId,
+    status: "pending",
+    orderId: orderId,
+    totalPrice: totalPrice,
+    deliveryDate: delivery,
+  });
+  await order.save();
+  products.forEach(async (prod) => {
+    const product = await Product.findById({ _id: prod._id });
+    let productName = product.name.get(ln);
+    if (productName == "") {
+      productName = product.name.get("en-US");
+    }
+    const orderedProduct = new OrderedProduct({
+      orderId: order._id,
+      productId: product._id,
+      quantity: prod.quantity,
+      unitPrice: product.sellingPrice,
+      name: productName,
+      shopId: product.creator,
+    });
+    await orderedProduct.save();
+  });
+
+  updateProductsQuantity(products);
+};
+
+const updateProductsQuantity = async (products) => {
+  products.forEach(async (prod) => {
+    const product = await Product.findById({ _id: prod._id });
+    const updatedQuantity = product.quantity - prod.quantity;
+    product.quantity = updatedQuantity;
+    await product.save();
+  });
 };
 
 const createConversation = async (ln, userId, product) => {

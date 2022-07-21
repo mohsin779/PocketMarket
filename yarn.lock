@@ -905,6 +905,11 @@ data-uri-to-buffer@3:
   resolved "https://registry.npmjs.org/data-uri-to-buffer/-/data-uri-to-buffer-3.0.1.tgz"
   integrity sha512-WboRycPNsVw3B3TL559F7kuBUM4d8CgMEvk6xEJlOp7OBPjt6G7z8WMWlD2rOFZLk6OYfFIUGsCOWzcQH9K2og==
 
+date-and-time@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/date-and-time/-/date-and-time-2.4.0.tgz#2c6d91812dfb75019d4f4e1558e2c658ac43973d"
+  integrity sha512-LOQDeVwnyqHN78A8n8LlPPGAWVpnCYAUuQUiD88tHb4a52n7lLb+82pxX0Hrw6u7IFgjFN0Qp0J8xerOV+F1TA==
+
 dayjs@^1.8.29:
   version "1.11.3"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.3.tgz#4754eb694a624057b9ad2224b67b15d552589258"
@@ -2416,6 +2421,11 @@ node-addon-api@^3.1.0:
   version "3.2.1"
   resolved "https://registry.npmjs.org/node-addon-api/-/node-addon-api-3.2.1.tgz"
   integrity sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A==
+
+node-cron@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/node-cron/-/node-cron-3.0.1.tgz#6a9d5a71513c7ee1eb9e64a673f6730084561d87"
+  integrity sha512-RAWZTNn2M5KDIUV/389UX0EXsqvdFAwc9QwHQceh0Ga56dygqSRthqIjwpgZsoDspHGt2rkHdk9Z4RgfPMdALw==
 
 node-fetch@^2.6.7:
   version "2.6.7"

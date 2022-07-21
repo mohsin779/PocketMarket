@@ -21,6 +21,7 @@ const orderSchema = new Schema({
   totalPrice: {
     type: Number,
   },
+  deliveryDate: String,
 });
 
 const validation = Joi.object({

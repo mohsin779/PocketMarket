@@ -428,15 +428,17 @@ exports.updateKey = async (req, res, next) => {
 
 exports.sendNotification = async (req, res, next) => {
   const { message } = req.body;
+
   var msg = {
     app_id: "c39fd41f-9972-43bd-adc8-454cb203c9c0",
     contents: { en: message },
     included_segments: ["Subscribed Users"],
+    // channel_for_external_user_ids: "push",
+    // include_external_user_ids: ["17e689de-eb63-4601-bbd9-e9f92dfa4a38"],
   };
 
-  const data = send(msg);
-  console.log(data);
-  res.status(200).send(data);
+  send(msg);
+  res.status(200).send({ message: "Notification send!" });
 };
 
 const clearImage = (filePath) => {
@@ -462,9 +464,7 @@ const send = (data) => {
   var req = https.request(options, function (res) {
     res.on("data", function (data) {
       console.log("Response:");
-      return JSON.parse(data);
-
-      // console.log(JSON.parse(data));
+      console.log(JSON.parse(data));
     });
   });
 
