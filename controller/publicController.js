@@ -23,9 +23,7 @@ exports.getCategories = async (req, res, next) => {
       };
     });
 
-    res
-      .status(200)
-      .send({ categories: catgr, ipAddress: req.socket.localAddress });
+    res.status(200).send({ categories: catgr, ip: req.ip });
   } catch (err) {
     res.status(500).send({ error: err });
   }
