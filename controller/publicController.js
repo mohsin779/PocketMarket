@@ -23,9 +23,11 @@ exports.getCategories = async (req, res, next) => {
       };
     });
 
-    res
-      .status(200)
-      .send({ categories: catgr, ip: req.ip, headers: req.headers });
+    res.status(200).send({
+      categories: catgr,
+      ip: req.ip,
+      headers: req.headers["x-forwarded-for"],
+    });
   } catch (err) {
     res.status(500).send({ error: err });
   }
