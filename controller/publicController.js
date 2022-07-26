@@ -25,7 +25,7 @@ exports.getCategories = async (req, res, next) => {
 
     res
       .status(200)
-      .send({ categories: catgr, ipAddress: req.socket.remoteAddress });
+      .send({ categories: catgr, ipAddress: req.socket.localAddress });
   } catch (err) {
     res.status(500).send({ error: err });
   }
