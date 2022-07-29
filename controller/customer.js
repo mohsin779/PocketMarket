@@ -162,10 +162,23 @@ exports.orderDetails = async (req, res, next) => {
     const order = await Order.findById(orderId);
     const orderedProduct = await OrderedProduct.find({
       orderId: orderId,
-    }).lean();
+    })
+      .lean()
+      .populate("productId");
+
+    const fetchedData = orderedProduct.map((product) => {
+      const prd = {
+        _id: product.productId._id,
+        imageUrl: product.productId.imageUrl,
+      };
+      return {
+        ...product,
+        productId: prd,
+      };
+    });
 
     return res.json({
-      orderedProduct: orderedProduct,
+      orderedProduct: fetchedData,
       totalPrice: order.totalPrice,
     });
   } catch (err) {
