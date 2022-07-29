@@ -158,10 +158,16 @@ exports.myOrders = async (req, res, next) => {
 
 exports.orderDetails = async (req, res, next) => {
   try {
-    const orderId = req.params.orderId;
-    const orderedProduct = await OrderedProduct.find({ orderId: orderId });
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    const orderedProduct = await OrderedProduct.findOne({
+      orderId: orderId,
+    }).lean();
 
-    return res.json({ orderedProduct: orderedProduct });
+    return res.json({
+      orderedProduct: orderedProduct,
+      totalPrice: order.totalPrice,
+    });
   } catch (err) {
     res.status(500).send({ error: err });
   }
