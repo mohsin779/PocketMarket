@@ -67,7 +67,7 @@ exports.getProducts = async (req, res, next) => {
           productFeatures = product.features.get("en-US");
         }
         const shop = {
-          id: product.creator._id,
+          _id: product.creator._id,
           name: product.creator.name,
           email: product.creator.email,
         };
