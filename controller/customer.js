@@ -160,7 +160,7 @@ exports.orderDetails = async (req, res, next) => {
   try {
     const { orderId } = req.params;
     const order = await Order.findById(orderId);
-    const orderedProduct = await OrderedProduct.findOne({
+    const orderedProduct = await OrderedProduct.find({
       orderId: orderId,
     }).lean();
 
