@@ -66,14 +66,8 @@ exports.getProducts = async (req, res, next) => {
         if (productFeatures == "") {
           productFeatures = product.features.get("en-US");
         }
-        const distance = calcDist(
-          product.creator.latitude,
-          product.creator.longitude,
-          latitude,
-          longitude
-        );
-        //distance less than or equal to 7Km
-        if (distance <= 7) {
+
+        if (!latitude || !longitude) {
           return {
             ...product._doc,
             name: productName,
@@ -81,8 +75,26 @@ exports.getProducts = async (req, res, next) => {
             features: productFeatures,
             creator: product.creator._id,
             rating,
-            distance,
           };
+        } else {
+          const distance = calcDist(
+            product.creator.latitude,
+            product.creator.longitude,
+            latitude,
+            longitude
+          );
+          //distance less than or equal to 7Km
+          if (distance <= 7) {
+            return {
+              ...product._doc,
+              name: productName,
+              description: productFeatures,
+              features: productFeatures,
+              creator: product.creator._id,
+              rating,
+              distance,
+            };
+          }
         }
       })
     );

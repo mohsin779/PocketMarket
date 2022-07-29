@@ -6,7 +6,7 @@ const isAuth = require("../middleware/is-auth");
 const router = express.Router();
 
 router.get("/category/:ln/get-categories", publicConrtoller.getCategories);
-router.get(
+router.post(
   "/products/:ln/get-products/:categoryId",
   publicConrtoller.getProducts
 );
