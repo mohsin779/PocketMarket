@@ -66,14 +66,18 @@ exports.getProducts = async (req, res, next) => {
         if (productFeatures == "") {
           productFeatures = product.features.get("en-US");
         }
-
+        const shop = {
+          id: product.creator._id,
+          name: product.creator.name,
+          email: product.creator.email,
+        };
         if (!latitude || !longitude) {
           return {
             ...product._doc,
             name: productName,
             description: productFeatures,
             features: productFeatures,
-            creator: product.creator._id,
+            creator: shop,
             rating,
           };
         } else {
