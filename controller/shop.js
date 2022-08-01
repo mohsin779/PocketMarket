@@ -14,6 +14,8 @@ const { Order } = require("../models/order");
 const { Language } = require("../models/language");
 const { Rating } = require("../models/rating");
 const { UserConversation } = require("../models/userConversation");
+const { Conversation } = require("../models/conversation");
+const { Message } = require("../models/message");
 
 const { required } = require("joi");
 var transporter = nodemailer.createTransport({
@@ -309,6 +311,8 @@ exports.deleteProduct = async (req, res, next) => {
     if (product.creator.toString() !== req.user._id) {
       return res.status(403).send({ error: "Not authorized!" });
     }
+    const conversations = await Conversation.find({ productId: productId });
+
     const ordered = await OrderedProduct.find({ productId: productId });
     if (ordered.length > 0) {
       ordered.forEach(async (order) => {
@@ -326,8 +330,15 @@ exports.deleteProduct = async (req, res, next) => {
           filename = filename.split(".")[0];
           cloudinary.uploader.destroy(filename);
           await Product.findByIdAndRemove(productId);
+          conversations.forEach(async (conversation) => {
+            await Message.deleteMany({ conversation: conversation._id });
+            await UserConversation.deleteMany({
+              conversation: conversation._id,
+            });
+          });
+          await conversation.deleteMany({ productId: productId });
 
-          return res.status(200).send({ message: "Deleted product." });
+          return res.status(200).send({ message: "Product Deleted." });
         }
       });
     } else {
@@ -335,8 +346,17 @@ exports.deleteProduct = async (req, res, next) => {
       filename = filename.split(".")[0];
       cloudinary.uploader.destroy(filename);
       await Product.findByIdAndRemove(productId);
+      conversations.forEach(async (conversation) => {
+        await Message.deleteMany({
+          conversation: conversation._id,
+        });
+        await UserConversation.deleteMany({
+          conversation: conversation._id,
+        });
+      });
+      await Conversation.deleteMany({ productId: productId });
 
-      return res.status(200).send({ message: "Deleted product." });
+      return res.status(200).send({ message: "Product Deleted." });
     }
   } catch (err) {
     res.status(500).send({ error: err });
@@ -533,7 +553,7 @@ exports.getConversations = async (req, res, next) => {
         const productDetails = await Product.findById(
           conv.conversation.productId
         );
-        // console.log(productDetails);
+        console.log(productDetails);
         let name = productDetails.name.get(ln);
         if (name == "") {
           name = productDetails.name.get("en-US");
