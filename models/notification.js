@@ -8,7 +8,10 @@ const notificationSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Customer",
   },
-
+  from: {
+    type: Schema.Types.ObjectId,
+    ref: "Shop",
+  },
   message: String,
   sendDate: String,
 });

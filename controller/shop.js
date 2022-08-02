@@ -16,8 +16,10 @@ const { Rating } = require("../models/rating");
 const { UserConversation } = require("../models/userConversation");
 const { Conversation } = require("../models/conversation");
 const { Message } = require("../models/message");
+const { Notification } = require("../models/notification");
 
 const { required } = require("joi");
+
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
   port: 2525,
@@ -336,7 +338,7 @@ exports.deleteProduct = async (req, res, next) => {
               conversation: conversation._id,
             });
           });
-          await conversation.deleteMany({ productId: productId });
+          await Conversation.deleteMany({ productId: productId });
 
           return res.status(200).send({ message: "Product Deleted." });
         }
@@ -458,6 +460,8 @@ exports.updateOrderStatus = async (req, res, next) => {
   try {
     const orderId = req.params.orderId;
     const shop = await OrderedProduct.findOne({ orderId: orderId });
+    const msg =
+      "One of Your order Status has been changed from Pending to Delivered";
 
     if (shop.shopId.toString() !== req.user._id) {
       return res.status(401).send({ error: "Not Authanticted" });
@@ -468,6 +472,26 @@ exports.updateOrderStatus = async (req, res, next) => {
     }
     order.status = "delivered";
     await order.save();
+    var message = {
+      app_id: process.env.ONE_SIGNAL_APP_ID,
+      contents: {
+        en: msg,
+      },
+      data: { orderId },
+      channel_for_external_user_ids: "push",
+      include_external_user_ids: [order.customerId],
+    };
+
+    sendNotification(message);
+
+    const notification = new Notification({
+      user: order.customerId,
+      from: req.user._id,
+      message: msg,
+      sendDate: new Date(),
+    });
+    await notification.save();
+
     return res.json({ message: "Staus updated successfully!" });
   } catch (err) {
     res.status(500).send({ error: err });
@@ -588,4 +612,36 @@ const getRatings = async (productId) => {
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));
+};
+
+const sendNotification = (data) => {
+  const key = "Basic " + process.env.ONE_SIGNAL_REST_API_KEY;
+  var headers = {
+    "Content-Type": "application/json; charset=utf-8",
+    Authorization: key,
+  };
+
+  var options = {
+    host: "onesignal.com",
+    port: 443,
+    path: "/api/v1/notifications",
+    method: "POST",
+    headers: headers,
+  };
+
+  var https = require("https");
+  var req = https.request(options, function (res) {
+    res.on("data", function (data) {
+      console.log("Response:");
+      console.log(JSON.parse(data));
+    });
+  });
+
+  req.on("error", function (e) {
+    console.log("ERROR:");
+    console.log(e);
+  });
+
+  req.write(JSON.stringify(data));
+  req.end();
 };

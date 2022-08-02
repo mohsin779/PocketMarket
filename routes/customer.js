@@ -41,5 +41,11 @@ router.delete(
   isAuth,
   customerController.deleteReview
 );
+router.delete(
+  "/clear-notificatins",
+  isAuth,
+  customerController.clearNotofications
+);
+router.get("/get-notifications", isAuth, customerController.getNotificatins);
 
 module.exports = router;

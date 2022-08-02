@@ -426,53 +426,7 @@ exports.updateKey = async (req, res, next) => {
   }
 };
 
-exports.sendNotification = async (req, res, next) => {
-  const { message } = req.body;
-
-  var msg = {
-    app_id: "c39fd41f-9972-43bd-adc8-454cb203c9c0",
-    contents: { en: message },
-    included_segments: ["Subscribed Users"],
-    // channel_for_external_user_ids: "push",
-    // include_external_user_ids: ["17e689de-eb63-4601-bbd9-e9f92dfa4a38"],
-  };
-
-  send(msg);
-  res.status(200).send({ message: "Notification send!" });
-};
-
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, "..", filePath);
   fs.unlink(filePath, (err) => console.log(err));
-};
-
-const send = (data) => {
-  var headers = {
-    "Content-Type": "application/json; charset=utf-8",
-    Authorization: "Basic OTdmMGRkZmEtNWY0ZS00ZTY3LWJkMWMtMjE0OGY3ODY1OTFk",
-  };
-
-  var options = {
-    host: "onesignal.com",
-    port: 443,
-    path: "/api/v1/notifications",
-    method: "POST",
-    headers: headers,
-  };
-
-  var https = require("https");
-  var req = https.request(options, function (res) {
-    res.on("data", function (data) {
-      console.log("Response:");
-      console.log(JSON.parse(data));
-    });
-  });
-
-  req.on("error", function (e) {
-    console.log("ERROR:");
-    console.log(e);
-  });
-
-  req.write(JSON.stringify(data));
-  req.end();
 };

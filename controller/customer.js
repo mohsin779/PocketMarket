@@ -22,6 +22,7 @@ const { Conversation } = require("../models/conversation");
 const { Message } = require("../models/message");
 const { Review } = require("../models/review");
 const { Key } = require("../models/key");
+const { Notification } = require("../models/notification");
 
 var transporter = nodemailer.createTransport({
   host: "smtp.mailtrap.io",
@@ -579,14 +580,46 @@ exports.addReview = async (req, res, next) => {
 };
 
 exports.deleteReview = async (req, res, next) => {
-  const { review } = req.params;
-  const result = await Review.findByIdAndRemove(review);
-  if (result) {
-    return res
-      .status(200)
-      .send({ message: "Your review has been deleted susseccfully!" });
-  } else {
-    return res.status(400).send({ error: "failed to delete this review" });
+  try {
+    const { review } = req.params;
+    const result = await Review.findByIdAndRemove(review);
+    if (result) {
+      return res
+        .status(200)
+        .send({ message: "Your review has been deleted susseccfully!" });
+    } else {
+      return res.status(400).send({ error: "failed to delete this review" });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.getNotificatins = async (req, res, next) => {
+  try {
+    const notifications = await Notification.find({ user: req.user._id });
+    if (notifications.length > 0) {
+      return res.status(200).send({ notifications });
+    } else {
+      return res
+        .status(404)
+        .send({ error: "You don't have any notification yet!" });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
+  }
+};
+
+exports.clearNotofications = async (req, res, next) => {
+  try {
+    const result = await Notification.deleteMany({ user: req.user._id });
+    if (result) {
+      return res
+        .status(200)
+        .send({ message: "Notifications clear successguly." });
+    }
+  } catch (err) {
+    res.status(500).send({ error: err });
   }
 };
 
