@@ -460,8 +460,6 @@ exports.updateOrderStatus = async (req, res, next) => {
   try {
     const orderId = req.params.orderId;
     const shop = await OrderedProduct.findOne({ orderId: orderId });
-    const msg =
-      "One of Your order Status has been changed from Pending to Delivered";
 
     if (shop.shopId.toString() !== req.user._id) {
       return res.status(401).send({ error: "Not Authanticted" });
@@ -472,6 +470,7 @@ exports.updateOrderStatus = async (req, res, next) => {
     }
     order.status = "delivered";
     await order.save();
+    const msg = "Your order #" + order.orderId + " is Delivered";
     var message = {
       app_id: process.env.ONE_SIGNAL_APP_ID,
       contents: {
