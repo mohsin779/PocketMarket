@@ -137,7 +137,7 @@ exports.myOrders = async (req, res, next) => {
       customerId: customerId,
     }).countDocuments();
     if (totalItems == 0) {
-      return res.json({ error: "You did not placed any order" });
+      return res.status(200).send({ orders: [], totalpages: 0 });
     }
     const orders = await Order.find({
       customerId: customerId,
@@ -358,9 +358,7 @@ exports.orderHistory = async (req, res, next) => {
     }).countDocuments();
 
     if (totalItems == 0) {
-      return res
-        .status(404)
-        .send({ orders: [], error: "you did not have any order history yet." });
+      return res.status(200).send({ orders: [], totalpages: 0 });
     }
     const orders = await Order.find({
       customerId: customerId,
@@ -685,3 +683,4 @@ const createConversation = async (ln, userId, product) => {
 
   return conversation._id;
 };
+// d62450e, 469198c
